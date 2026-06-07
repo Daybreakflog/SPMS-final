@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1677ff" />
+    <meta name="description" content="智慧物业 1.0 后台管理系统 — 房源、合同、收费、工单、报表一体化运营平台" />
+    <title>智慧物业管理系统</title>
+    <!-- 首屏占位：在 JS 加载前展示加载态，减少白屏与 CLS -->
+    <style>
+      #root:empty::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: #f5f5f5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='16' fill='none' stroke='%231677ff' stroke-width='4' stroke-dasharray='80' stroke-dashoffset='60'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 20 20' to='360 20 20' dur='0.8s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E") center no-repeat;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>请启用 JavaScript 以使用智慧物业管理系统。</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

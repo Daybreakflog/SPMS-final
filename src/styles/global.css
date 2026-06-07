@@ -1,0 +1,214 @@
+@import './tailwind.css';
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--app-bg-layout);
+}
+
+/* 全局柔和的层叠背景 —— 让悬浮卡片有“漂”的感觉 */
+.ant-layout {
+  background: transparent !important;
+}
+
+.ant-layout-has-sider > .ant-layout,
+.ant-layout-content {
+  background: transparent !important;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--app-bg-layout-gradient);
+  z-index: -1;
+  pointer-events: none;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== 悬浮卡片风格（floating-card） ===== */
+
+.ant-card,
+.ant-table-wrapper,
+.ant-tabs-card,
+.ant-descriptions-bordered,
+.ant-list-bordered,
+.ant-pro-card,
+.floating-card {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-card) !important;
+  border: 1px solid var(--app-border) !important;
+  background: var(--app-bg-container) !important;
+  transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease !important;
+}
+
+.ant-card:hover,
+.floating-card:hover {
+  box-shadow: var(--shadow-card-hover) !important;
+  transform: translateY(-2px);
+  border-color: transparent !important;
+}
+
+/* Table 容器：去掉默认细边，使用阴影分层 */
+.ant-table-wrapper .ant-table {
+  background: transparent !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+.ant-table-wrapper .ant-table-container {
+  border-radius: var(--radius-lg) !important;
+}
+
+.ant-table-thead > tr > th {
+  background: var(--app-fill-quaternary) !important;
+  border-bottom: 1px solid var(--app-border) !important;
+}
+
+/* 弹窗、抽屉、下拉等悬浮容器 */
+.ant-modal-content,
+.ant-drawer-content,
+.ant-popover-inner,
+.ant-dropdown-menu,
+.ant-select-dropdown,
+.ant-picker-dropdown .ant-picker-panel-container,
+.ant-notification-notice,
+.ant-message-notice-content {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-float) !important;
+}
+
+/* 表单、输入控件圆角 */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number,
+.ant-select-selector,
+.ant-picker,
+.ant-btn {
+  border-radius: var(--radius-base) !important;
+}
+
+.ant-btn-primary:hover {
+  box-shadow: var(--shadow-primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* ===== 悬浮 Sidebar / Header ===== */
+.floating-sider {
+  position: relative;
+  margin: 12px 0 12px 12px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-float);
+  background: var(--app-bg-sidebar-solid) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--app-border);
+}
+
+.floating-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  background: transparent !important;
+}
+
+.floating-sider .ant-menu {
+  background: transparent !important;
+  border-inline-end: 0 !important;
+  padding: 8px;
+}
+
+.floating-sider .ant-menu-item,
+.floating-sider .ant-menu-submenu-title {
+  border-radius: var(--radius-base) !important;
+  margin: 4px 0 !important;
+  width: auto !important;
+}
+
+.floating-sider .ant-menu-item-selected {
+  background: var(--color-primary-bg) !important;
+  color: var(--color-primary) !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px -6px rgba(22, 119, 255, 0.35);
+}
+
+[data-theme="dark"] .floating-sider .ant-menu-item,
+[data-theme="dark"] .floating-sider .ant-menu-submenu-title {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.floating-sider .ant-menu-item:hover,
+.floating-sider .ant-menu-submenu-title:hover {
+  background: var(--app-fill-quaternary) !important;
+}
+
+.floating-header {
+  margin: 12px 12px 0 12px;
+  border-radius: var(--radius-xl);
+  background: var(--app-bg-container) !important;
+  box-shadow: var(--shadow-float);
+  border: 1px solid var(--app-border);
+  height: 60px !important;
+  line-height: 60px !important;
+}
+
+.floating-content-wrap {
+  padding: 16px 12px 12px 12px !important;
+}
+
+/* Breadcrumb 简化 */
+.ant-breadcrumb {
+  margin-bottom: 12px;
+}
+
+/* 打印样式：整页打印时隐藏导航/操作类元素，仅保留正文 */
+@media print {
+  .ant-layout-sider,
+  .ant-layout-header,
+  .ant-float-btn-group,
+  .ant-float-btn,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  body::before {
+    display: none !important;
+  }
+
+  .ant-card,
+  .floating-card {
+    box-shadow: none !important;
+    border: 1px solid #d9d9d9 !important;
+  }
+}

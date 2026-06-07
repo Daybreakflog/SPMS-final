@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1677ff;
+  --color-primary-bg: rgba(22, 119, 255, 0.08);
+  --color-success: #52c41a;
+  --color-warning: #faad14;
+  --color-error: #ff4d4f;
+  --color-info: #1677ff;
+
+  --color-bg-layout: var(--app-bg-layout);
+  --color-bg-container: var(--app-bg-container);
+  --color-bg-sidebar: var(--app-bg-sidebar);
+  --color-bg-elevated: var(--app-bg-elevated);
+
+  --color-text-primary: var(--app-text-primary);
+  --color-text-secondary: var(--app-text-secondary);
+  --color-text-tertiary: var(--app-text-tertiary);
+
+  --color-border: var(--app-border);
+  --color-fill-quaternary: var(--app-fill-quaternary);
+
+  --spacing-page: 20px;
+  --spacing-card: 16px;
+
+  /* 圆角 — 三档统一：控件 / 卡片 / 大容器 */
+  --radius-sm: 8px;
+  --radius-md: 10px;   /* 覆盖 Tailwind 内置 rounded-md，与 radius-base 对齐 */
+  --radius-base: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  /* 阴影 — 三档统一：普通卡片 / 悬停 / 布局漂浮容器 */
+  --shadow-card: 0 6px 20px -10px rgba(15, 23, 42, 0.18), 0 2px 8px -2px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 18px 38px -16px rgba(15, 23, 42, 0.28), 0 6px 14px -6px rgba(15, 23, 42, 0.12);
+  --shadow-float: 0 12px 32px -14px rgba(15, 23, 42, 0.22), 0 4px 10px -4px rgba(15, 23, 42, 0.08);
+  --shadow-primary: 0 6px 14px -8px rgba(22, 119, 255, 0.55);
+  --shadow-primary-hover: 0 10px 22px -10px rgba(22, 119, 255, 0.7);
+}
+
+:root {
+  --app-bg-layout: #eef1f6;
+  --app-bg-layout-gradient: radial-gradient(circle at 0% 0%, rgba(22, 119, 255, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(114, 46, 209, 0.05) 0%, transparent 55%),
+    linear-gradient(180deg, #eef1f6 0%, #e6ebf4 100%);
+  --app-bg-container: #ffffff;
+  --app-bg-elevated: #ffffff;
+  --app-bg-sidebar: rgba(255, 255, 255, 0.86);
+  --app-bg-sidebar-solid: #ffffff;
+  --app-text-primary: rgba(15, 23, 42, 0.92);
+  --app-text-secondary: rgba(15, 23, 42, 0.62);
+  --app-text-tertiary: rgba(15, 23, 42, 0.42);
+  --app-border: rgba(15, 23, 42, 0.08);
+  --app-fill-quaternary: rgba(15, 23, 42, 0.025);
+}
+
+[data-theme="dark"] {
+  --app-bg-layout: #0b0f1a;
+  --app-bg-layout-gradient: radial-gradient(circle at 0% 0%, rgba(22, 119, 255, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(114, 46, 209, 0.12) 0%, transparent 55%),
+    linear-gradient(180deg, #0b0f1a 0%, #0a0e17 100%);
+  --app-bg-container: #1a1f2e;
+  --app-bg-elevated: #232838;
+  --app-bg-sidebar: rgba(26, 31, 46, 0.86);
+  --app-bg-sidebar-solid: #1a1f2e;
+  --app-text-primary: rgba(255, 255, 255, 0.88);
+  --app-text-secondary: rgba(255, 255, 255, 0.62);
+  --app-text-tertiary: rgba(255, 255, 255, 0.42);
+  --app-border: rgba(255, 255, 255, 0.08);
+  --app-fill-quaternary: rgba(255, 255, 255, 0.04);
+}
