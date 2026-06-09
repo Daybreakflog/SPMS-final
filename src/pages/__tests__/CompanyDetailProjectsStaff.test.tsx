@@ -37,31 +37,31 @@ describe('CompanyDetailPage - 数据加载', () => {
   });
 
   it('调用 companyService.detail', async () => {
-    renderWithProviders(<CompanyDetailPage />);
+    renderWithProviders(<CompanyDetailPage open id="company-002" onClose={() => {}} />);
     await waitFor(() => expect(companyService.detail).toHaveBeenCalledWith('company-002'));
   });
 
   it('调用 projectService.list with companyId', async () => {
-    renderWithProviders(<CompanyDetailPage />);
+    renderWithProviders(<CompanyDetailPage open id="company-002" onClose={() => {}} />);
     await waitFor(() => expect(projectService.list).toHaveBeenCalledWith(
       expect.objectContaining({ companyId: 'company-002' })
     ));
   });
 
   it('调用 userService.list with companyId', async () => {
-    renderWithProviders(<CompanyDetailPage />);
+    renderWithProviders(<CompanyDetailPage open id="company-002" onClose={() => {}} />);
     await waitFor(() => expect(userService.list).toHaveBeenCalledWith(
       expect.objectContaining({ companyId: 'company-002' })
     ));
   });
 
   it('显示公司地址', async () => {
-    renderWithProviders(<CompanyDetailPage />);
+    renderWithProviders(<CompanyDetailPage open id="company-002" onClose={() => {}} />);
     await waitFor(() => expect(screen.getAllByText('北京市朝阳区')[0]).toBeInTheDocument());
   });
 
   it('基础信息 Tab 默认激活', async () => {
-    renderWithProviders(<CompanyDetailPage />);
+    renderWithProviders(<CompanyDetailPage open id="company-002" onClose={() => {}} />);
     await waitFor(() => screen.getAllByText('鑫海物业')[0]);
     const tabs = screen.getAllByRole('tab');
     const infoTab = tabs.find((el) => el.textContent?.includes('基础'));

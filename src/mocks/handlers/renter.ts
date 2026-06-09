@@ -271,7 +271,7 @@ export const renterHandlers = [
     let filtered = [...renters];
     if (keyword) {
       filtered = filtered.filter(
-        (r) => r.name.includes(keyword) || r.phone.includes(keyword) || r.idNumber.includes(keyword),
+        (r) => r.name.includes(keyword) || r.phone?.includes(keyword) || r.idNumber?.includes(keyword),
       );
     }
     if (projectId) {

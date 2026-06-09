@@ -59,7 +59,7 @@ const complaints = [
 
 async function renderPage() {
   const mod = await import('../customers/renters/detail');
-  return renderWithProviders(<mod.default />);
+  return renderWithProviders(<mod.default open id="r1" onClose={() => {}} />);
 }
 
 describe('RenterDetailPage', () => {

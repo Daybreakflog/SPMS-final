@@ -34,7 +34,7 @@ const contract = {
 
 async function renderPage() {
   const mod = await import('../contracts/detail');
-  return renderWithProviders(<mod.default />);
+  return renderWithProviders(<mod.default open id="c1" onClose={() => {}} />);
 }
 
 describe('ContractDetailPage operation log', () => {

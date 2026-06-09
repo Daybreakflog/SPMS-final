@@ -53,12 +53,12 @@ describe('UserDetailPage - 操作日志 Tab', () => {
   });
 
   it('显示用户姓名', async () => {
-    renderWithProviders(<UserDetailPage />, { route: '/org/users/user-001' });
+    renderWithProviders(<UserDetailPage open id="user-001" onClose={() => {}} />, { route: '/org/users/user-001' });
     await waitFor(() => expect(screen.getAllByText('张三')[0]).toBeInTheDocument());
   });
 
   it('操作日志 Tab 标签可见', async () => {
-    renderWithProviders(<UserDetailPage />, { route: '/org/users/user-001' });
+    renderWithProviders(<UserDetailPage open id="user-001" onClose={() => {}} />, { route: '/org/users/user-001' });
     await waitFor(() => screen.getAllByText('张三')[0]);
     const tabs = screen.getAllByRole('tab');
     const auditTab = tabs.find((el) => el.textContent?.includes('操作日志'));
@@ -66,7 +66,7 @@ describe('UserDetailPage - 操作日志 Tab', () => {
   });
 
   it('点击操作日志 Tab 后展示日志条目', async () => {
-    renderWithProviders(<UserDetailPage />, { route: '/org/users/user-001' });
+    renderWithProviders(<UserDetailPage open id="user-001" onClose={() => {}} />, { route: '/org/users/user-001' });
     await waitFor(() => screen.getAllByText('张三')[0]);
 
     const tabs = screen.getAllByRole('tab');
@@ -78,7 +78,7 @@ describe('UserDetailPage - 操作日志 Tab', () => {
 
   it('无日志时显示空状态', async () => {
     vi.mocked(auditService.resourceHistory).mockResolvedValue([]);
-    renderWithProviders(<UserDetailPage />, { route: '/org/users/user-001' });
+    renderWithProviders(<UserDetailPage open id="user-001" onClose={() => {}} />, { route: '/org/users/user-001' });
     await waitFor(() => screen.getAllByText('张三')[0]);
 
     const tabs = screen.getAllByRole('tab');

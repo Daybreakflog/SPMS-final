@@ -42,12 +42,12 @@ describe('UserDetailPage 操作日志 Tab 细节', () => {
   });
 
   it('调用 auditService.resourceHistory 传递用户 id', async () => {
-    renderWithProviders(<UserDetailPage />);
+    renderWithProviders(<UserDetailPage open id="user-002" onClose={() => {}} />);
     await waitFor(() => expect(auditService.resourceHistory).toHaveBeenCalledWith('user-002'));
   });
 
   it('操作日志 Tab 包含 IP 地址', async () => {
-    renderWithProviders(<UserDetailPage />);
+    renderWithProviders(<UserDetailPage open id="user-002" onClose={() => {}} />);
     await waitFor(() => screen.getAllByText('李四')[0]);
     const tabs = screen.getAllByRole('tab');
     const auditTab = tabs.find((el) => el.textContent?.includes('操作日志'));
@@ -56,7 +56,7 @@ describe('UserDetailPage 操作日志 Tab 细节', () => {
   });
 
   it('日志操作类型 LOGIN 显示', async () => {
-    renderWithProviders(<UserDetailPage />);
+    renderWithProviders(<UserDetailPage open id="user-002" onClose={() => {}} />);
     await waitFor(() => screen.getAllByText('李四')[0]);
     const tabs = screen.getAllByRole('tab');
     const auditTab = tabs.find((el) => el.textContent?.includes('操作日志'));
@@ -68,7 +68,7 @@ describe('UserDetailPage 操作日志 Tab 细节', () => {
   });
 
   it('日志操作类型 APPROVE 显示', async () => {
-    renderWithProviders(<UserDetailPage />);
+    renderWithProviders(<UserDetailPage open id="user-002" onClose={() => {}} />);
     await waitFor(() => screen.getAllByText('李四')[0]);
     const tabs = screen.getAllByRole('tab');
     const auditTab = tabs.find((el) => el.textContent?.includes('操作日志'));

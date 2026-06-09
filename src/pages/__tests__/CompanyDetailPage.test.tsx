@@ -50,12 +50,12 @@ describe('CompanyDetailPage', () => {
   });
 
   it('加载完成后显示公司名称', async () => {
-    renderWithProviders(<CompanyDetailPage />, { route: '/platform/companies/company-001' });
+    renderWithProviders(<CompanyDetailPage open id="company-001" onClose={() => {}} />, { route: '/platform/companies/company-001' });
     await waitFor(() => expect(screen.getAllByText('测试物业公司')[0]).toBeInTheDocument());
   });
 
   it('项目列表 Tab 渲染项目数据', async () => {
-    renderWithProviders(<CompanyDetailPage />, { route: '/platform/companies/company-001' });
+    renderWithProviders(<CompanyDetailPage open id="company-001" onClose={() => {}} />, { route: '/platform/companies/company-001' });
     await waitFor(() => screen.getAllByText('测试物业公司')[0]);
     const tabs = screen.getAllByRole('tab');
     const projectTab = tabs.find((el) => el.textContent?.includes('项目'));
@@ -64,7 +64,7 @@ describe('CompanyDetailPage', () => {
   });
 
   it('员工列表 Tab 渲染用户数据', async () => {
-    renderWithProviders(<CompanyDetailPage />, { route: '/platform/companies/company-001' });
+    renderWithProviders(<CompanyDetailPage open id="company-001" onClose={() => {}} />, { route: '/platform/companies/company-001' });
     await waitFor(() => screen.getAllByText('测试物业公司')[0]);
     const tabs = screen.getAllByRole('tab');
     const staffTab = tabs.find((el) => el.textContent?.includes('员工'));
@@ -74,7 +74,7 @@ describe('CompanyDetailPage', () => {
 
   it('公司不存在时显示提示', async () => {
     (companyService.detail as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-    renderWithProviders(<CompanyDetailPage />, { route: '/platform/companies/company-001' });
+    renderWithProviders(<CompanyDetailPage open id="company-001" onClose={() => {}} />, { route: '/platform/companies/company-001' });
     await waitFor(() => expect(screen.getByText('公司不存在')).toBeInTheDocument());
   });
 });
