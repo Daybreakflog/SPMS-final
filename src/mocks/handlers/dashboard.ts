@@ -1,5 +1,14 @@
 import { http, HttpResponse } from 'msw';
 
+// ⚠ MSW DRIFT MARKER
+//   下列端点 Swagger 1.0 未定义，仅由前端 Mock 提供。后端实现前请勿在生产依赖：
+//     GET /api/dashboard/trend
+//     GET /api/dashboard/repair-distribution
+//     GET /api/dashboard/todos
+//     GET /api/dashboard/expiring-contracts
+//     GET /api/dashboard/latest-announcements
+//   /api/dashboard/overview 与 /api/dashboard/tenant-home 已对齐 Swagger。
+
 export const dashboardHandlers = [
   // GET /api/dashboard/overview
   http.get('/api/dashboard/overview', () => {
@@ -18,6 +27,10 @@ export const dashboardHandlers = [
       overdueBillsTrend: 8.3,
       expiringContractsCount: 3,
     });
+  }),
+
+  http.get('/api/dashboard/tenant-home', () => {
+    return HttpResponse.json({ message: 'ok' });
   }),
 
   // GET /api/dashboard/trend — 12 months collection trend

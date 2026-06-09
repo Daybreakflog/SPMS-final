@@ -27,7 +27,7 @@ export const contractService = {
     http.delete<void>(`/contracts/${id}`),
 
   submit: (id: string) =>
-    http.post<Contract>(`/contracts/${id}/submit`),
+    http.post<Contract>(`/contracts/${id}/submit`, {}),
 
   financeApprove: (id: string, data: ContractApproveDTO) =>
     http.post<Contract>(`/contracts/${id}/finance/approve`, data),

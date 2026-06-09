@@ -6,15 +6,30 @@ import { ApiError } from './error';
 import { unwrapResponse } from './adapter';
 import { useProjectStore } from '@/store/project.store';
 import { sanitizeInput } from '@/utils/sanitize';
+import {
+  DEFAULT_SESSION_TIMEOUT_MS,
+  SESSION_TIMEOUT_CHECK_INTERVAL_MS,
+} from '@/constants/session';
 
 interface ErrorResponseData {
   code: number;
   message: string;
 }
 
-const MAX_RETRIES = 2;
-const RETRY_DELAY_BASE = 1000;
-const SESSION_TIMEOUT = 30 * 60 * 1000;
+const MAX_RETRIES = 1;
+const RETRY_DELAY_BASE = 300;
+const RETRYABLE_METHODS = new Set(['get', 'head', 'options']);
+
+// 会话空闲超时阈值。
+// TODO(backend): 后端 /api/system/settings 接口就绪后，登录成功时调用 setSessionTimeoutMs()
+//   将 security.sessionTimeout（分钟）写入，覆盖默认值。
+let sessionTimeoutMs = DEFAULT_SESSION_TIMEOUT_MS;
+
+export function setSessionTimeoutMs(ms: number): void {
+  if (Number.isFinite(ms) && ms > 0) {
+    sessionTimeoutMs = ms;
+  }
+}
 
 let lastActivityTime = Date.now();
 
@@ -23,9 +38,9 @@ function resetActivityTimer() {
 }
 
 function checkSessionTimeout() {
-  if (Date.now() - lastActivityTime > SESSION_TIMEOUT && getAccessToken()) {
+  if (Date.now() - lastActivityTime > sessionTimeoutMs && getAccessToken()) {
     clearTokens();
-    window.location.href = '/login';
+    window.location.href = '/auth/staff/login';
   }
 }
 
@@ -33,7 +48,7 @@ if (typeof window !== 'undefined') {
   ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach((evt) =>
     window.addEventListener(evt, resetActivityTimer, { passive: true }),
   );
-  setInterval(checkSessionTimeout, 60_000);
+  setInterval(checkSessionTimeout, SESSION_TIMEOUT_CHECK_INTERVAL_MS);
 }
 
 interface RetryConfig extends AxiosRequestConfig {
@@ -42,7 +57,7 @@ interface RetryConfig extends AxiosRequestConfig {
 
 const request = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
-  timeout: 15_000,
+  timeout: 8_000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -85,7 +100,8 @@ request.interceptors.response.use(
     if (!response) {
       const retryConfig = config as RetryConfig;
       const retryCount = retryConfig?._retryCount ?? 0;
-      if (retryCount < MAX_RETRIES && config) {
+      const method = config?.method?.toLowerCase() ?? '';
+      if (RETRYABLE_METHODS.has(method) && retryCount < MAX_RETRIES && config) {
         (config as RetryConfig)._retryCount = retryCount + 1;
         const delay = RETRY_DELAY_BASE * Math.pow(2, retryCount);
         await new Promise((r) => setTimeout(r, delay));
@@ -104,7 +120,7 @@ request.interceptors.response.use(
         const rt = getRefreshToken();
         if (!rt) {
           clearTokens();
-          window.location.href = '/login';
+          window.location.href = '/auth/staff/login';
           return Promise.reject(new ApiError(401, '登录已过期'));
         }
 
@@ -123,7 +139,7 @@ request.interceptors.response.use(
           .catch(() => {
             clearTokens();
             pendingQueue.length = 0;
-            window.location.href = '/login';
+            window.location.href = '/auth/staff/login';
             throw new ApiError(401, '登录已过期');
           })
           .finally(() => {

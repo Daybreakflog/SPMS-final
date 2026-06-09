@@ -1,23 +1,24 @@
 import { useState } from 'react';
 import { Button, Form, Input, Select, Space, Tabs, Tag } from 'antd';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TableColumnsType } from 'antd';
 import PageHeader from '@/components/PageHeader';
 import SearchFilterBar from '@/components/SearchFilterBar';
 import DataTable from '@/components/DataTable';
 import StatusTag from '@/components/StatusTag';
+import PermissionGuard from '@/components/PermissionGuard';
 import { useTableQuery } from '@/hooks/useTableQuery';
 import { complaintService } from '@/services/complaint.service';
 import { ComplaintStatusMeta, ComplaintStatusTabKeys, ComplaintTargetTypeLabelKeys, SeverityLabelKeys, SeverityColors } from '@/constants/status';
-import { ComplaintStatus } from '@/types/enums';
+import { ComplaintStatus, RoleCode } from '@/types/enums';
 import type { Complaint, ComplaintListParams } from '@/types';
 import { formatDateTime } from '@/utils/format';
+import ComplaintDetailModal from './detail';
 
 export default function ComplaintListPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [statusTab, setStatusTab] = useState('');
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const { data, total, page, pageSize, loading, onPageChange, onFilterChange, onReset } =
     useTableQuery<Complaint, ComplaintListParams>({
@@ -73,7 +74,7 @@ export default function ComplaintListPage() {
       width: 80,
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" onClick={() => navigate(`/service/complaints/${record.id}`)}>
+          <Button type="link" size="small" onClick={() => setDetailId(record.id)}>
             {t('common.detail')}
           </Button>
         </Space>
@@ -82,6 +83,10 @@ export default function ComplaintListPage() {
   ];
 
   return (
+    <PermissionGuard
+      roles={[RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.CUSTOMER_SERVICE, RoleCode.OPERATIONS]}
+      fallback={<div className="py-16 text-center text-text-tertiary">{t('common.noPermission')}</div>}
+    >
     <div>
       <PageHeader title={t('service.complaintTitle')} />
 
@@ -107,13 +112,6 @@ export default function ComplaintListPage() {
             ))}
           </Select>
         </Form.Item>
-        <Form.Item name="severity" label={t('service.severity')}>
-          <Select allowClear placeholder={t('common.all')} style={{ width: 120 }}>
-            {Object.entries(SeverityLabelKeys).map(([key, labelKey]) => (
-              <Select.Option key={key} value={key}>{t(labelKey)}</Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
       </SearchFilterBar>
 
       <DataTable<Complaint>
@@ -125,6 +123,9 @@ export default function ComplaintListPage() {
         pageSize={pageSize}
         onPageChange={onPageChange}
       />
+
+      <ComplaintDetailModal open={!!detailId} id={detailId ?? ''} onClose={() => setDetailId(null)} />
     </div>
+    </PermissionGuard>
   );
 }

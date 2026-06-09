@@ -6,33 +6,39 @@ export interface RenterListParams extends PageParams {
   bindStatus?: string;
 }
 
+// 对应后端 CreateRenterProfileDto
 export interface RenterCreateDTO {
+  companyId: string;
   name: string;
-  gender?: string;
-  birthDate?: string;
-  idType: string;
-  idNumber: string;
-  phone: string;
-  phoneAlt?: string;
-  email?: string;
-  emergencyContact?: string;
-  company?: string;
-  position?: string;
-  attachments?: string[];
+  type?: 'PERSON' | 'COMPANY';
+  phone?: string;
+  idNumber?: string;
+  idFrontUrl?: string;
+  idBackUrl?: string;
+  creditCode?: string;
+  contactName?: string;
   remark?: string;
 }
 
-export type RenterUpdateDTO = Partial<RenterCreateDTO>;
+// 对应后端 UpdateRenterProfileDto（多一个 status）
+export interface RenterUpdateDTO extends Partial<RenterCreateDTO> {
+  status?: number;
+}
 
+// 对应后端 CreateRenterAccountDto
 export interface RenterAccountCreateDTO {
   username: string;
   password: string;
+  phone?: string;
 }
 
+// 对应后端 UpdateRenterAccountDto
 export interface RenterAccountUpdateDTO {
-  status?: string;
+  phone?: string;
+  status?: number;
 }
 
+// 对应后端 ResetRenterAccountPasswordDto
 export interface RenterResetPasswordDTO {
-  newPassword: string;
+  password: string;
 }

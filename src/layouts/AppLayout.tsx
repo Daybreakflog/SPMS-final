@@ -19,6 +19,8 @@ import GlobalSearch from '@/components/GlobalSearch';
 import AppTour from '@/components/AppTour';
 import { useAppTour } from '@/components/AppTour/useAppTour';
 import { useMenuStore } from '@/store/menu.store';
+import { useUserStore } from '@/store/user.store';
+import { RoleCode } from '@/types/enums';
 import { trackRouteChange } from '@/utils/performance';
 
 const { Content } = Layout;
@@ -67,11 +69,11 @@ function usePullToRefresh(containerRef: React.RefObject<HTMLElement | null>) {
   return refreshing;
 }
 
-const BOTTOM_TABS = [
+const ALL_BOTTOM_TABS = [
   { key: '/dashboard', icon: <DashboardOutlined />, labelKey: 'menu.dashboard' },
   { key: '/contracts', icon: <FileTextOutlined />, labelKey: 'menu.contracts' },
   { key: '/service/repairs', icon: <ToolOutlined />, labelKey: 'menu.service' },
-  { key: '/system/audit-logs', icon: <SettingOutlined />, labelKey: 'menu.system' },
+  { key: '/system/audit-logs', icon: <SettingOutlined />, labelKey: 'menu.system', roles: [RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.OPERATIONS] as RoleCode[] },
 ];
 
 export default function AppLayout() {
@@ -82,6 +84,7 @@ export default function AppLayout() {
   const isMobile = useIsMobile();
   const toggleCollapsed = useMenuStore((s) => s.toggleCollapsed);
   const contentRef = useRef<HTMLElement>(null);
+  const userRoles = useUserStore((s) => s.user?.roles ?? []);
 
   usePullToRefresh(contentRef);
 
@@ -89,7 +92,8 @@ export default function AppLayout() {
     trackRouteChange(location.pathname);
   }, [location.pathname]);
 
-  const activeTab = BOTTOM_TABS.find((tab) => location.pathname.startsWith(tab.key))?.key ?? '/dashboard';
+  const bottomTabs = ALL_BOTTOM_TABS.filter((tab) => !tab.roles || tab.roles.some((r) => userRoles.includes(r)));
+  const activeTab = bottomTabs.find((tab) => location.pathname.startsWith(tab.key))?.key ?? '/dashboard';
 
   return (
     <Layout className="h-screen">
@@ -115,7 +119,7 @@ export default function AppLayout() {
 
         {isMobile && (
           <nav className="fixed inset-x-0 bottom-0 z-50 flex h-14 items-center justify-around border-t border-border bg-bg-container shadow-md">
-            {BOTTOM_TABS.map((tab) => (
+            {bottomTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => navigate(tab.key)}

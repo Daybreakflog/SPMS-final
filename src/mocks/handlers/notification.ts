@@ -1,5 +1,22 @@
 import { http, HttpResponse } from 'msw';
 
+// ⚠ MSW DRIFT MARKER
+//   Swagger 1.0 仅定义了：
+//     GET   /api/notifications
+//     PATCH /api/notifications/:id/read
+//     PATCH /api/notifications/read
+//     PATCH /api/notifications/read-all
+//   下列由 notificationCenterHandlers 暴露的端点 Swagger 未定义：
+//     GET    /api/notification/list
+//     GET    /api/notification/stats
+//     PUT    /api/notification/:id/read
+//     PUT    /api/notification/read-all
+//     POST   /api/notification/batch-delete
+//     DELETE /api/notification/:id
+//     GET    /api/notification/preferences
+//     PUT    /api/notification/preferences
+//   后端实现统一前缀前请勿当作真实接口依赖。
+
 interface MockNotification {
   id: string;
   type: string;
@@ -44,7 +61,7 @@ export const notificationHandlers = [
   http.get('/api/notifications', ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page')) || 1;
-    const pageSize = Number(url.searchParams.get('pageSize')) || 20;
+    const pageSize = Number(url.searchParams.get('pageSize')) || 10;
     const type = url.searchParams.get('type') || '';
     const readParam = url.searchParams.get('read');
 
@@ -90,4 +107,111 @@ export const notificationHandlers = [
     notifications.forEach((n) => { n.read = true; });
     return HttpResponse.json({ success: true });
   }),
+];
+
+// ===== Sprint 17: 实时通知中心（/api/notification/*） =====
+type CenterType = 'CONTRACT_EXPIRY' | 'BILL_OVERDUE' | 'REPAIR_ASSIGNED' | 'SYSTEM';
+
+interface CenterNotification {
+  id: string;
+  type: CenterType;
+  title: string;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+  linkPath?: string;
+}
+
+const centerNotifications: CenterNotification[] = [
+  { id: 'nc-001', type: 'CONTRACT_EXPIRY', title: '合同即将到期', content: '合同 CT-2025010（吴十）将于15天后到期，请及时跟进续签。', isRead: false, createdAt: '2026-06-07T09:00:00Z', linkPath: '/contracts' },
+  { id: 'nc-002', type: 'BILL_OVERDUE', title: '账单逾期提醒', content: '有12条账单已逾期，涉及金额¥35,800.00。', isRead: false, createdAt: '2026-06-07T08:30:00Z', linkPath: '/billing/bills' },
+  { id: 'nc-003', type: 'REPAIR_ASSIGNED', title: '新工单待派单', content: '张三提交水管漏水报修工单 RO-2026001。', isRead: false, createdAt: '2026-06-07T08:00:00Z', linkPath: '/service/repairs' },
+  { id: 'nc-004', type: 'SYSTEM', title: '系统升级通知', content: '系统将于今晚22:00进行维护升级。', isRead: true, createdAt: '2026-06-06T20:00:00Z' },
+  { id: 'nc-005', type: 'CONTRACT_EXPIRY', title: '合同到期提醒', content: '合同 CT-2025022（周九）将于28天后到期。', isRead: true, createdAt: '2026-06-06T10:00:00Z', linkPath: '/contracts' },
+  { id: 'nc-006', type: 'BILL_OVERDUE', title: '欠费跟进', content: '租户孙八5月物业费逾期未缴，请催缴。', isRead: true, createdAt: '2026-06-05T14:00:00Z', linkPath: '/billing/bills' },
+  { id: 'nc-007', type: 'REPAIR_ASSIGNED', title: '工单已分配', content: '工单 RO-2026003 已分配给工程师李四。', isRead: true, createdAt: '2026-06-05T11:00:00Z', linkPath: '/service/repairs' },
+  { id: 'nc-008', type: 'SYSTEM', title: '密码安全提醒', content: '您已超过90天未修改密码，建议及时更新。', isRead: true, createdAt: '2026-06-04T09:00:00Z' },
+  { id: 'nc-009', type: 'CONTRACT_EXPIRY', title: '合同到期提醒', content: '合同 CT-2025030（郑十一）将于30天后到期。', isRead: true, createdAt: '2026-06-03T09:00:00Z', linkPath: '/contracts' },
+  { id: 'nc-010', type: 'BILL_OVERDUE', title: '逾期账单汇总', content: '本周新增逾期账单3条。', isRead: true, createdAt: '2026-06-02T09:00:00Z', linkPath: '/billing/bills' },
+];
+
+export const notificationCenterHandlers = [
+  // GET /api/notification/list
+  http.get('/api/notification/list', ({ request }) => {
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get('page')) || 1;
+    const pageSize = Number(url.searchParams.get('pageSize')) || 10;
+    const isReadParam = url.searchParams.get('isRead');
+
+    let filtered = [...centerNotifications];
+    if (isReadParam !== null && isReadParam !== '') {
+      const isRead = isReadParam === 'true';
+      filtered = filtered.filter((n) => n.isRead === isRead);
+    }
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const total = filtered.length;
+    const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+    return HttpResponse.json({ items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
+  }),
+
+  // GET /api/notification/stats
+  http.get('/api/notification/stats', () => {
+    const unread = centerNotifications.filter((n) => !n.isRead).length;
+    return HttpResponse.json({ total: centerNotifications.length, unread });
+  }),
+
+  // PUT /api/notification/:id/read
+  http.put('/api/notification/:id/read', ({ params }) => {
+    const item = centerNotifications.find((n) => n.id === params.id);
+    if (!item) return HttpResponse.json({ code: 404, message: '通知不存在', data: null }, { status: 404 });
+    item.isRead = true;
+    return HttpResponse.json({ success: true });
+  }),
+
+  // PUT /api/notification/read-all
+  http.put('/api/notification/read-all', () => {
+    centerNotifications.forEach((n) => { n.isRead = true; });
+    return HttpResponse.json({ success: true });
+  }),
+
+  // POST /api/notification/batch-delete — 批量删除
+  http.post('/api/notification/batch-delete', async ({ request }) => {
+    const body = (await request.json()) as { ids: string[] };
+    (body.ids ?? []).forEach((id) => {
+      const idx = centerNotifications.findIndex((n) => n.id === id);
+      if (idx !== -1) centerNotifications.splice(idx, 1);
+    });
+    return HttpResponse.json({ success: true });
+  }),
+
+  // DELETE /api/notification/:id
+  http.delete('/api/notification/:id', ({ params }) => {
+    const idx = centerNotifications.findIndex((n) => n.id === params.id);
+    if (idx === -1) return HttpResponse.json({ code: 404, message: '通知不存在', data: null }, { status: 404 });
+    centerNotifications.splice(idx, 1);
+    return HttpResponse.json({ success: true });
+  }),
+
+  // GET /api/notification/preferences — 有状态偏好
+  http.get('/api/notification/preferences', () => {
+    return HttpResponse.json(notificationPreferences);
+  }),
+
+  // PUT /api/notification/preferences — 更新偏好
+  http.put('/api/notification/preferences', async ({ request }) => {
+    const body = (await request.json()) as { preferences: { type: CenterType; enabled: boolean }[] };
+    (body.preferences ?? []).forEach((p) => {
+      const item = notificationPreferences.find((x) => x.type === p.type);
+      if (item) item.enabled = p.enabled;
+    });
+    return HttpResponse.json({ success: true });
+  }),
+];
+
+const notificationPreferences: { type: CenterType; enabled: boolean }[] = [
+  { type: 'CONTRACT_EXPIRY', enabled: true },
+  { type: 'BILL_OVERDUE', enabled: true },
+  { type: 'REPAIR_ASSIGNED', enabled: true },
+  { type: 'SYSTEM', enabled: false },
 ];

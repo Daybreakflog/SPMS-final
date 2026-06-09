@@ -1,34 +1,24 @@
 import type { PageParams } from './common';
 
 export interface LeaseListParams extends PageParams {
-  keyword?: string;
-  unitId?: string;
   projectId?: string;
+  unitId?: string;
+  renterProfileId?: string;
   status?: string;
-  checkInStart?: string;
-  checkInEnd?: string;
-  checkOutStart?: string;
-  checkOutEnd?: string;
 }
 
+// 对应后端 CheckInDto
+//   合同签署进入 ACTIVE 时后端会自动建 lease，多数场景不需要手动调 check-in
 export interface CheckInDTO {
-  renterId: string;
+  projectId: string;
   unitId: string;
+  renterProfileId: string;
   checkInDate: string;
-  contractId?: string;
-  coResidents?: CoResident[];
   remark?: string;
 }
 
-export interface CoResident {
-  name: string;
-  phone?: string;
-  idNumber?: string;
-  relation?: string;
-}
-
+// 对应后端 CheckOutDto
 export interface CheckOutDTO {
-  checkOutDate: string;
-  reason?: string;
+  checkOutDate?: string;
   remark?: string;
 }

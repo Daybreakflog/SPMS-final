@@ -107,7 +107,7 @@ export default function PropertyTreePage() {
 
   const handleBind = async () => {
     if (!selectedNode || !selectedRenterId) return;
-    await propertyService.bindUnit(selectedNode.id, { renterId: selectedRenterId });
+    await propertyService.bindUnit(selectedNode.id, { renterProfileId: selectedRenterId });
     getMessageApi()?.success('绑定成功');
     setBindDrawerOpen(false);
     setSelectedRenterId('');
@@ -176,7 +176,7 @@ export default function PropertyTreePage() {
       return (
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="m-0">{f.floorNumber}层</h4>
+            <h4 className="m-0">{f.floorNo}层</h4>
             <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.CUSTOMER_SERVICE]}>
               <Space>
                 <Button size="small" icon={<PlusOutlined />} onClick={() => openNodeForm('createUnit')}>新增单元</Button>
@@ -188,7 +188,7 @@ export default function PropertyTreePage() {
             </PermissionGuard>
           </div>
           <Descriptions bordered column={1} size="small">
-            <Descriptions.Item label="层号">{f.floorNumber}</Descriptions.Item>
+            <Descriptions.Item label="层号">{f.floorNo}</Descriptions.Item>
             <Descriptions.Item label="单元数">{f.unitCount ?? '-'}</Descriptions.Item>
           </Descriptions>
         </div>
@@ -199,7 +199,7 @@ export default function PropertyTreePage() {
     return (
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h4 className="m-0">单元 {u.unitNumber}</h4>
+          <h4 className="m-0">单元 {u.name}</h4>
           <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.CUSTOMER_SERVICE]}>
             <Space>
               {u.bindStatus === 'UNBOUND' ? (
@@ -217,9 +217,9 @@ export default function PropertyTreePage() {
           </PermissionGuard>
         </div>
         <Descriptions bordered column={1} size="small">
-          <Descriptions.Item label="单元号">{u.unitNumber}</Descriptions.Item>
+          <Descriptions.Item label="单元名称">{u.name}</Descriptions.Item>
           <Descriptions.Item label="户型">{u.houseType ?? '-'}</Descriptions.Item>
-          <Descriptions.Item label="建筑面积">{u.buildingArea ? `${u.buildingArea} ㎡` : '-'}</Descriptions.Item>
+          <Descriptions.Item label="建筑面积">{u.area ? `${u.area} ㎡` : '-'}</Descriptions.Item>
           <Descriptions.Item label="套内面积">{u.innerArea ? `${u.innerArea} ㎡` : '-'}</Descriptions.Item>
           <Descriptions.Item label="朝向">{u.direction ?? '-'}</Descriptions.Item>
           <Descriptions.Item label="月租金">{formatMoney(u.monthlyRent)}</Descriptions.Item>
@@ -304,13 +304,13 @@ export default function PropertyTreePage() {
             </>
           )}
           {(formMode === 'createFloor' || formMode === 'editFloor') && (
-            <Form.Item name="floorNumber" label="楼层号" rules={[{ required: true, message: '请输入楼层号' }]}>
+            <Form.Item name="floorNo" label="楼层号" rules={[{ required: true, message: '请输入楼层号' }]}>
               <InputNumber min={-5} max={200} style={{ width: '100%' }} placeholder="请输入楼层号" />
             </Form.Item>
           )}
           {(formMode === 'createUnit' || formMode === 'editUnit') && (
             <>
-              <Form.Item name="unitNumber" label="单元号" rules={[{ required: true, message: '请输入单元号' }]}>
+              <Form.Item name="name" label="单元名称" rules={[{ required: true, message: '请输入单元名称' }]}>
                 <Input placeholder="如：101" />
               </Form.Item>
               <Form.Item name="houseType" label="户型">
@@ -322,7 +322,7 @@ export default function PropertyTreePage() {
                   <Select.Option value="三室两厅">三室两厅</Select.Option>
                 </Select>
               </Form.Item>
-              <Form.Item name="buildingArea" label="建筑面积（㎡）" rules={[{ required: true, message: '请输入建筑面积' }]}>
+              <Form.Item name="area" label="建筑面积（㎡）" rules={[{ required: true, message: '请输入建筑面积' }]}>
                 <InputNumber min={0} style={{ width: '100%' }} placeholder="请输入建筑面积" />
               </Form.Item>
               <Form.Item name="innerArea" label="套内面积（㎡）">

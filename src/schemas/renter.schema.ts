@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 /** 中国大陆手机号 */
 export const phoneRegex = /^1[3-9]\d{9}$/;
-/** 邮箱 */
-export const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /** 身份证号（15 或 18 位） */
 export const idCardRegex = /(^\d{15}$)|(^\d{17}[\dXx]$)/;
 
@@ -17,5 +15,4 @@ export const renterSchema = z.object({
   idNumber: z.string().trim().min(6, '证件号码至少 6 位').max(30, '证件号码过长'),
   phone: z.string().trim().regex(phoneRegex, '请输入正确的手机号'),
   phoneAlt: z.string().trim().regex(phoneRegex, '请输入正确的备用手机号'),
-  email: z.string().trim().regex(emailRegex, '请输入正确的邮箱'),
 });

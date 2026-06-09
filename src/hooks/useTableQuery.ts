@@ -18,7 +18,7 @@ export function useTableQuery<TData, TFilter extends object>(
     queryKey,
     queryFn,
     defaultFilter = {} as Partial<TFilter>,
-    defaultPageSize = 20,
+    defaultPageSize = 10,
     syncToUrl = true,
   } = options;
 

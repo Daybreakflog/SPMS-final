@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Button, Card, Col, Row, Select, Switch, Space, Segmented, InputNumber, Tooltip } from 'antd';
+import { Button, Card, Col, Row, Select, Switch, Space, Segmented, InputNumber, Tooltip, Tag } from 'antd';
 import {
   HomeOutlined,
   DollarOutlined,
@@ -8,19 +8,61 @@ import {
   SettingOutlined,
   FullscreenOutlined,
   FullscreenExitOutlined,
+  HolderOutlined,
+  RedoOutlined,
 } from '@ant-design/icons';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
+import { useHasAnyRole } from '@/hooks/useHasRole';
+import { RoleCode } from '@/types/enums';
 import EChart from '@/components/EChart';
 import PageHeader from '@/components/PageHeader';
 import { dashboardService } from '@/services/dashboard.service';
+import { projectService } from '@/services/project.service';
 import { formatDateTime } from '@/utils/format';
 import type { CollectionTrend, RepairStatusDistribution, TodoItem, AnnouncementBrief, ExpiringContract } from '@/types';
 import KpiCard from './components/KpiCard';
 import ChartSkeleton from './components/ChartSkeleton';
+import DataScreenAlert from './components/DataScreenAlert';
+import { WIDGET_ORDER_KEY, DEFAULT_WIDGET_ORDER, loadWidgetOrder, saveWidgetOrder } from './widget-order';
+import type { WidgetKey } from './widget-order';
 
 const DASHBOARD_PREFS_KEY = 'dashboard-layout-prefs';
+
+function SortableWidgetTag({ id, label }: { id: string; label: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+  return (
+    <Tag
+      ref={setNodeRef}
+      style={style}
+      className="flex cursor-grab items-center gap-1 select-none"
+      {...attributes}
+      {...listeners}
+    >
+      <HolderOutlined className="text-xs text-text-tertiary" />
+      {label}
+    </Tag>
+  );
+}
 
 interface DashboardPrefs {
   density: 'compact' | 'standard';
@@ -39,18 +81,41 @@ function savePrefs(prefs: DashboardPrefs) {
   localStorage.setItem(DASHBOARD_PREFS_KEY, JSON.stringify(prefs));
 }
 
-const projectOptions = [
-  { value: 'project-001', label: '翡翠湾花园' },
-  { value: 'project-002', label: '阳光城' },
-  { value: 'project-003', label: '锦绣华庭' },
-];
+const FINANCIAL_ROLES = [RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN];
 
 export default function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const canViewFinancials = useHasAnyRole(FINANCIAL_ROLES);
   const [projectId, setProjectId] = useState<string | undefined>(undefined);
+  const didAutoSelectProject = useRef(false);
   const [prefs, setPrefs] = useState<DashboardPrefs>(loadPrefs);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [widgetOrder, setWidgetOrder] = useState<WidgetKey[]>(loadWidgetOrder);
+  const [dragMode, setDragMode] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setWidgetOrder((prev) => {
+        const oldIdx = prev.indexOf(active.id as WidgetKey);
+        const newIdx = prev.indexOf(over.id as WidgetKey);
+        const next = arrayMove(prev, oldIdx, newIdx);
+        saveWidgetOrder(next);
+        return next;
+      });
+    }
+  };
+
+  const resetWidgetOrder = () => {
+    localStorage.removeItem(WIDGET_ORDER_KEY);
+    setWidgetOrder([...DEFAULT_WIDGET_ORDER]);
+  };
 
   // 数据大屏模式
   const [fullscreen, setFullscreen] = useState(false);
@@ -89,35 +154,39 @@ export default function DashboardPage() {
   const isVisible = (key: string) => prefs.visibleModules[key] !== false;
   const gutter: [number, number] = prefs.density === 'compact' ? [8, 8] : [16, 16];
 
+  const { data: projectsData } = useQuery({
+    queryKey: ['dashboard-projects'],
+    queryFn: () => projectService.list({ page: 1, pageSize: 200 }),
+    staleTime: 5 * 60 * 1000,
+  });
+  const projectOptions = (projectsData?.items ?? []).map((p) => ({ value: p.id, label: p.name }));
+
+  useEffect(() => {
+    if (!didAutoSelectProject.current && projectsData?.items?.length) {
+      setProjectId(projectsData.items[0].id);
+      didAutoSelectProject.current = true;
+    }
+  }, [projectsData]);
+
   const { data: overview, refetch: overviewRefetch } = useQuery({
     queryKey: ['dashboard-overview', projectId],
     queryFn: () => dashboardService.overview(projectId ? { projectId } : undefined),
   });
 
-  const { data: trend, isLoading: trendLoading, refetch: trendRefetch } = useQuery({
-    queryKey: ['dashboard-trend', projectId],
-    queryFn: () => dashboardService.trend(projectId ? { projectId } : undefined),
-  });
-
-  const { data: repairDist, isLoading: repairLoading, refetch: repairRefetch } = useQuery({
-    queryKey: ['dashboard-repair-dist', projectId],
-    queryFn: () => dashboardService.repairDist(projectId ? { projectId } : undefined),
-  });
-
-  const { data: todoList, refetch: todoRefetch } = useQuery({
-    queryKey: ['dashboard-todos'],
-    queryFn: () => dashboardService.todoList(),
-  });
-
-  const { data: latestNotice, refetch: noticeRefetch } = useQuery({
-    queryKey: ['dashboard-latest-announcements'],
-    queryFn: () => dashboardService.latestNotice(),
-  });
-
-  const { data: expiringContracts, refetch: expiringRefetch } = useQuery({
-    queryKey: ['dashboard-expiring-contracts', expiryDays],
-    queryFn: () => dashboardService.expiringContracts(expiryDays),
-  });
+  // 以下子模块后端无对应接口（trend / repair-distribution / todos / latest-announcements / expiring-contracts），
+  // 已退化为静态空数据；要恢复需让后端补接口
+  const trend: CollectionTrend[] | undefined = undefined;
+  const trendLoading = false;
+  const trendRefetch = () => {};
+  const repairDist: RepairStatusDistribution[] | undefined = undefined;
+  const repairLoading = false;
+  const repairRefetch = () => {};
+  const todoList: TodoItem[] | undefined = undefined;
+  const todoRefetch = () => {};
+  const latestNotice: AnnouncementBrief[] | undefined = undefined;
+  const noticeRefetch = () => {};
+  const expiringContracts: ExpiringContract[] | undefined = undefined;
+  const expiringRefetch = () => {};
 
   useEffect(() => {
     if (autoRefresh && refreshInterval > 0) {
@@ -210,13 +279,14 @@ export default function DashboardPage() {
     ],
   };
 
-  const kpiCards = [
+  const allKpiCards = [
     {
       title: t('dashboard.occupancyRate'),
       value: overview?.occupancyRate ?? 0,
       trend: overview?.occupancyRateTrend,
       suffix: '%',
       icon: <HomeOutlined />,
+      financialOnly: false,
     },
     {
       title: t('dashboard.monthlyReceivable'),
@@ -225,6 +295,7 @@ export default function DashboardPage() {
       prefix: <DollarOutlined />,
       precision: 2,
       onClick: () => navigate('/billing/bills'),
+      financialOnly: true,
     },
     {
       title: t('dashboard.monthlyCollected'),
@@ -233,6 +304,7 @@ export default function DashboardPage() {
       prefix: <DollarOutlined />,
       precision: 2,
       onClick: () => navigate('/billing/bills'),
+      financialOnly: true,
     },
     {
       title: t('dashboard.collectionRate'),
@@ -240,6 +312,7 @@ export default function DashboardPage() {
       trend: overview?.collectionRateTrend,
       suffix: '%',
       icon: <DollarOutlined />,
+      financialOnly: true,
     },
     {
       title: t('dashboard.pendingRepairs'),
@@ -247,6 +320,7 @@ export default function DashboardPage() {
       trend: overview?.pendingRepairsTrend,
       icon: <ToolOutlined />,
       onClick: () => navigate('/service/repairs'),
+      financialOnly: false,
     },
     {
       title: t('dashboard.overdueBills'),
@@ -254,8 +328,10 @@ export default function DashboardPage() {
       trend: overview?.overdueBillsTrend,
       icon: <AlertOutlined />,
       onClick: () => navigate('/billing/bills'),
+      financialOnly: true,
     },
   ];
+  const kpiCards = canViewFinancials ? allKpiCards : allKpiCards.filter((c) => !c.financialOnly);
 
   return (
     <div ref={containerRef} className={fullscreen ? 'overflow-auto bg-bg-layout p-6' : ''}>
@@ -334,6 +410,34 @@ export default function DashboardPage() {
                   }[key]}</span>
                 </label>
               ))}
+            </div>
+            <div className="flex items-center gap-3 border-t border-border pt-3">
+              <span className="text-sm font-medium">自定义布局：</span>
+              <Switch size="small" checked={dragMode} onChange={setDragMode} />
+              {dragMode && (
+                <>
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={widgetOrder} strategy={horizontalListSortingStrategy}>
+                      <div className="flex flex-wrap gap-2" aria-label="widget-order-list">
+                        {widgetOrder.map((key) => (
+                          <SortableWidgetTag
+                            key={key}
+                            id={key}
+                            label={{ kpi: 'KPI', trend: '收款趋势', repair: '报修分布', expiring: '到期合同', todo: '待办', announcement: '公告' }[key]}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                  <Button
+                    size="small"
+                    icon={<RedoOutlined />}
+                    onClick={resetWidgetOrder}
+                  >
+                    重置顺序
+                  </Button>
+                </>
+              )}
             </div>
           </Space>
         </Card>
@@ -499,6 +603,8 @@ export default function DashboardPage() {
           </Col>
         )}
       </Row>
+
+      {fullscreen && <DataScreenAlert />}
     </div>
   );
 }

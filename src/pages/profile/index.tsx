@@ -28,7 +28,7 @@ export default function ProfilePage() {
         return;
       }
       setChangingPassword(true);
-      await userService.changePassword({
+      await userService.changePassword(user.id, {
         oldPassword: values.oldPassword,
         newPassword: values.newPassword,
       });
@@ -58,7 +58,7 @@ export default function ProfilePage() {
               <Space size={4} wrap>
                 {user.roles.map((r) => (
                   <Tag key={r} color={RoleColors[r as RoleCode]}>
-                    {RoleLabels[r as RoleCode] ?? r}
+                    {RoleLabels[r as RoleCode] ?? (typeof r === 'string' ? r : String(r))}
                   </Tag>
                 ))}
               </Space>

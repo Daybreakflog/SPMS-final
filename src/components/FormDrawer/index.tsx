@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { Drawer, Button, Space, Form, Spin } from 'antd';
+import { Modal, Button, Form, Spin } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { FormInstance } from 'antd';
 
@@ -51,26 +51,27 @@ export default function FormDrawer({
   };
 
   return (
-    <Drawer
+    <Modal
       title={title}
       open={open}
-      onClose={onClose}
-      styles={{ wrapper: { width } }}
+      onCancel={onClose}
+      width={width}
+      centered
       aria-label={title}
-      extra={
-        <Space>
-          <Button onClick={onClose}>{t('common.cancel')}</Button>
-          <Button type="primary" onClick={handleSubmit} loading={submitting}>
-            {t('common.save')}
-          </Button>
-        </Space>
-      }
+      footer={[
+        <Button key="cancel" onClick={onClose}>
+          {t('common.cancel')}
+        </Button>,
+        <Button key="submit" type="primary" onClick={handleSubmit} loading={submitting}>
+          {t('common.save')}
+        </Button>,
+      ]}
     >
       <Spin spinning={loading}>
         <Form form={form} layout="vertical">
           {children}
         </Form>
       </Spin>
-    </Drawer>
+    </Modal>
   );
 }

@@ -11,7 +11,7 @@ async function bootstrap() {
 
   if (import.meta.env.VITE_ENABLE_MSW === 'true') {
     const { worker } = await import('./mocks/browser');
-    await worker.start({ onUnhandledRequest: 'bypass' });
+    await worker.start({ onUnhandledRequest: 'warn' });
   }
 
   createRoot(document.getElementById('root')!).render(

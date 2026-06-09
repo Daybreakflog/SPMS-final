@@ -81,7 +81,7 @@ export default function FeeItemListPage() {
       width: 150,
       render: (_, record) => (
         <Space size="small">
-          <PermissionGuard roles={[RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN]}>
+          <PermissionGuard roles={[RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN]}>
             <Button type="link" size="small" onClick={() => handleEdit(record)}>
               {t('common.edit')}
             </Button>
@@ -99,7 +99,7 @@ export default function FeeItemListPage() {
       <PageHeader
         title={t('billing.feeItemTitle')}
         extra={
-          <PermissionGuard roles={[RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN]}>
+          <PermissionGuard roles={[RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN]}>
             <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
               {t('billing.createFeeItem')}
             </Button>
@@ -112,15 +112,8 @@ export default function FeeItemListPage() {
         onReset={onReset}
         collapsible={false}
       >
-        <Form.Item name="keyword" label={t('billing.feeItemName')}>
-          <Input placeholder={t('billing.feeItemNamePlaceholder')} allowClear />
-        </Form.Item>
-        <Form.Item name="billingRule" label={t('billing.billingRule')}>
-          <Select allowClear placeholder={t('common.all')} style={{ width: 140 }}>
-            {Object.entries(BillingRuleLabelKeys).map(([key, labelKey]) => (
-              <Select.Option key={key} value={key}>{t(labelKey)}</Select.Option>
-            ))}
-          </Select>
+        <Form.Item name="code" label={t('billing.feeItemCode')}>
+          <Input placeholder={t('billing.feeItemCodePlaceholder')} allowClear />
         </Form.Item>
         <Form.Item name="status" label={t('common.status')}>
           <Select allowClear placeholder={t('common.all')} style={{ width: 120 }}>

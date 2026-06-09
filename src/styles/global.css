@@ -183,6 +183,21 @@ body::before {
   padding: 16px 12px 12px 12px !important;
 }
 
+/* 详情页背景板 */
+.detail-page-panel {
+  background: var(--app-bg-container);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--app-border);
+  padding: 24px;
+}
+
+.detail-page-panel:hover {
+  transform: none !important;
+  box-shadow: var(--shadow-card) !important;
+  border-color: var(--app-border) !important;
+}
+
 /* Breadcrumb 简化 */
 .ant-breadcrumb {
   margin-bottom: 12px;
@@ -208,6 +223,11 @@ body::before {
 
   .ant-card,
   .floating-card {
+    box-shadow: none !important;
+    border: 1px solid #d9d9d9 !important;
+  }
+
+  .detail-page-panel {
     box-shadow: none !important;
     border: 1px solid #d9d9d9 !important;
   }

@@ -103,8 +103,8 @@ export default function Sidebar() {
       }
       return undefined;
     };
-    return findPath(menuConfig) ?? '/dashboard';
-  }, [location.pathname]);
+    return findPath(filteredMenu) ?? '/dashboard';
+  }, [location.pathname, filteredMenu]);
 
   const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
     navigate(key);
@@ -116,8 +116,8 @@ export default function Sidebar() {
   };
 
   const logoBlock = (
-    <div className="flex h-16 items-center justify-center px-4">
-      <h1 className="m-0 bg-gradient-to-r from-primary to-[#722ed1] bg-clip-text text-base font-bold text-transparent">
+    <div className="flex h-16 items-center justify-center overflow-hidden px-4">
+      <h1 className="m-0 overflow-hidden whitespace-nowrap bg-gradient-to-r from-primary to-[#722ed1] bg-clip-text text-base font-bold text-transparent">
         {collapsed && !isMobile ? 'SP' : t('app.title')}
       </h1>
     </div>
@@ -127,8 +127,9 @@ export default function Sidebar() {
     <Menu
       mode="inline"
       selectedKeys={[selectedKey]}
-      openKeys={collapsed && !isMobile ? [] : openKeys}
-      onOpenChange={handleOpenChange}
+      {...(!collapsed || isMobile
+        ? { openKeys, onOpenChange: handleOpenChange }
+        : {})}
       onClick={handleMenuClick}
       items={menuItems}
       className="flex-1 overflow-auto"

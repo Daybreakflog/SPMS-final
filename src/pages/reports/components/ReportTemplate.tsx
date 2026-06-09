@@ -9,6 +9,8 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import PageHeader from '@/components/PageHeader';
 import DataTable from '@/components/DataTable';
+import PermissionGuard from '@/components/PermissionGuard';
+import { RoleCode } from '@/types/enums';
 import { getMessageApi } from '@/utils/antd';
 import { exportToExcel } from '@/utils/export';
 import DateQuickPicker from './DateQuickPicker';
@@ -28,6 +30,8 @@ interface ReportTemplateProps {
   kpiCards: (kpis: Record<string, unknown>) => ReactNode;
   chartOption: (data: unknown[]) => Record<string, unknown>;
   chartHeight?: number;
+  chartTitle?: string;
+  chartDescription?: string;
   columns: TableColumnsType<Record<string, unknown>>;
   extraParams?: Record<string, unknown>;
 }
@@ -40,6 +44,8 @@ export default function ReportTemplate({
   kpiCards,
   chartOption,
   chartHeight = 350,
+  chartTitle,
+  chartDescription,
   columns,
   extraParams = {},
 }: ReportTemplateProps) {
@@ -83,9 +89,11 @@ export default function ReportTemplate({
       <PageHeader
         title={title}
         extra={
-          <Button icon={<DownloadOutlined />} onClick={handleExport}>
-            {t('report.exportExcel')}
-          </Button>
+          <PermissionGuard roles={[RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.OPERATIONS]}>
+            <Button icon={<DownloadOutlined />} onClick={handleExport}>
+              {t('report.exportExcel')}
+            </Button>
+          </PermissionGuard>
         }
       />
 
@@ -115,7 +123,19 @@ export default function ReportTemplate({
         )}
 
         {reportData?.chartData && (
-          <Card className="mb-4">
+          <Card
+            className="mb-4"
+            title={
+              chartTitle ? (
+                <div>
+                  <div className="text-sm font-semibold">{chartTitle}</div>
+                  {chartDescription && (
+                    <div className="text-xs font-normal text-text-tertiary">{chartDescription}</div>
+                  )}
+                </div>
+              ) : undefined
+            }
+          >
             <EChart option={chartOption(reportData.chartData)} style={{ height: chartHeight }} />
           </Card>
         )}
@@ -125,7 +145,7 @@ export default function ReportTemplate({
           dataSource={reportData?.details?.items ?? []}
           total={reportData?.details?.total ?? 0}
           page={reportData?.details?.page ?? 1}
-          pageSize={reportData?.details?.pageSize ?? 20}
+          pageSize={reportData?.details?.pageSize ?? 10}
           rowKey={(record: Record<string, unknown>) => String(record.id ?? Math.random())}
         />
       </Spin>

@@ -39,13 +39,17 @@ export default function SearchFilterBar<T extends object>({
   };
 
   return (
-    <div className="mb-4 rounded-md bg-bg-container p-4 shadow-card" role="search" aria-label={t('common.search')}>
+    <div
+      className="mb-4 rounded-md bg-bg-container p-4 shadow-card"
+      role="search"
+      aria-label={t('common.search')}
+      onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+    >
       <Form
         form={form}
         layout="inline"
         initialValues={defaultValues}
         className={`flex flex-wrap gap-y-3 ${collapsed && collapsible ? 'max-h-[40px] overflow-hidden' : ''}`}
-        onFinish={handleSearch}
       >
         {children}
       </Form>

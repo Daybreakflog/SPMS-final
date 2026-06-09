@@ -1,34 +1,184 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Descriptions, Tabs, Tag, Spin, Button, Modal, Form, Input, Table } from 'antd';
+import { Modal, Descriptions, Tabs, Tag, Spin, Button, Form, Input, Table, Empty } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { UserAddOutlined, KeyOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import PageHeader from '@/components/PageHeader';
 import PermissionGuard from '@/components/PermissionGuard';
+import StatusTag from '@/components/StatusTag';
+import MoneyDisplay from '@/components/MoneyDisplay';
 import { renterService } from '@/services/renter.service';
-import { formatDateTime } from '@/utils/format';
+import { contractService } from '@/services/contract.service';
+import { billingService } from '@/services/billing.service';
+import { repairService } from '@/services/repair.service';
+import { complaintService } from '@/services/complaint.service';
+import { formatDate, formatDateTime } from '@/utils/format';
 import { maskIdCard, maskPhone } from '@/utils/mask';
-import { IdTypeLabelKeys, GenderLabelKeys } from '@/constants/status';
-import { RoleCode } from '@/types/enums';
-import type { RenterAccount } from '@/types';
+import { ContractStatusMeta, BillStatusMeta, RepairStatusMeta, ComplaintStatusMeta } from '@/constants/status';
+import { RoleCode, ContractStatus, BillStatus, RepairStatus, ComplaintStatus } from '@/types/enums';
+import type { RenterAccount, Contract, Bill, RepairOrder, Complaint } from '@/types';
 import { getMessageApi } from '@/utils/antd';
 import TenantAppPreview from './components/TenantAppPreview';
+import ContractDetailModal from '@/pages/contracts/detail';
+import BillDetailModal from '@/pages/billing/bills/detail';
+import RepairDetailModal from '@/pages/service/repairs/detail';
 
-export default function RenterDetailPage() {
+function RenterContracts({ renterId, onViewContract }: { renterId: string; onViewContract: (id: string) => void }) {
   const { t } = useTranslation();
-  const { id } = useParams<{ id: string }>();
+  const { data, isLoading } = useQuery({
+    queryKey: ['renter-contracts', renterId],
+    queryFn: () => contractService.list({ renterProfileId: renterId, page: 1, pageSize: 50 }),
+    enabled: !!renterId,
+  });
+  const contracts = data?.items ?? [];
+  if (isLoading) return <Spin className="flex justify-center py-8" />;
+  if (contracts.length === 0) return <Empty description={t('common.noData')} />;
+  return (
+    <Table<Contract>
+      dataSource={contracts}
+      rowKey="id"
+      size="small"
+      pagination={false}
+      columns={[
+        {
+          title: t('contract.contractNo'), dataIndex: 'contractNo',
+          render: (v: string, r: Contract) => (
+            <Button type="link" size="small" className="p-0" onClick={() => onViewContract(r.id)}>{v}</Button>
+          ),
+        },
+        { title: t('contract.unit'), dataIndex: 'unitNumber' },
+        { title: t('contract.startDate'), dataIndex: 'startDate', render: (v: string) => formatDate(v) },
+        { title: t('contract.endDate'), dataIndex: 'endDate', render: (v: string) => formatDate(v) },
+        { title: t('contract.monthlyRent'), dataIndex: 'monthlyRent', render: (v: number) => <MoneyDisplay value={v} /> },
+        { title: t('common.status'), dataIndex: 'status', render: (v: string) => <StatusTag status={v as ContractStatus} statusMap={ContractStatusMeta} /> },
+      ]}
+      onRow={(record) => ({ onClick: () => onViewContract(record.id), className: 'cursor-pointer' })}
+    />
+  );
+}
+
+function RenterBills({ renterId, onViewBill }: { renterId: string; onViewBill: (id: string) => void }) {
+  const { t } = useTranslation();
+  const { data, isLoading } = useQuery({
+    queryKey: ['renter-bills', renterId],
+    queryFn: () => billingService.billList({ renterProfileId: renterId, page: 1, pageSize: 50 }),
+    enabled: !!renterId,
+  });
+  const bills = data?.items ?? [];
+  if (isLoading) return <Spin className="flex justify-center py-8" />;
+  if (bills.length === 0) return <Empty description={t('common.noData')} />;
+  return (
+    <Table<Bill>
+      dataSource={bills}
+      rowKey="id"
+      size="small"
+      pagination={false}
+      columns={[
+        {
+          title: t('billing.billNo'), dataIndex: 'billNo',
+          render: (v: string, r: Bill) => (
+            <Button type="link" size="small" className="p-0" onClick={() => onViewBill(r.id)}>{v}</Button>
+          ),
+        },
+        { title: t('billing.feeItem'), dataIndex: 'feeItemName' },
+        { title: t('billing.period'), dataIndex: 'period' },
+        { title: t('billing.amount'), dataIndex: 'amount', render: (v: number) => <MoneyDisplay value={v} /> },
+        { title: t('common.status'), dataIndex: 'status', render: (v: string) => <StatusTag status={v as BillStatus} statusMap={BillStatusMeta} /> },
+      ]}
+      onRow={(record) => ({ onClick: () => onViewBill(record.id), className: 'cursor-pointer' })}
+    />
+  );
+}
+
+function RenterServices({ renterId, onViewRepair }: { renterId: string; onViewRepair: (id: string) => void }) {
+  const { t } = useTranslation();
+
+  const { data: repairData, isLoading: repairLoading } = useQuery({
+    queryKey: ['renter-repairs', renterId],
+    queryFn: () => repairService.list({ renterId, page: 1, pageSize: 50 } as never),
+    enabled: !!renterId,
+  });
+  const { data: complaintData, isLoading: complaintLoading } = useQuery({
+    queryKey: ['renter-complaints', renterId],
+    queryFn: () => complaintService.list({ renterId, page: 1, pageSize: 50 } as never),
+    enabled: !!renterId,
+  });
+
+  const repairs = (repairData as { items?: RepairOrder[] })?.items ?? [];
+  const complaints = (complaintData as { items?: Complaint[] })?.items ?? [];
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h4 className="mb-2 font-medium">{t('service.repairTitle')}</h4>
+        {repairLoading ? (
+          <Spin className="flex justify-center py-4" />
+        ) : repairs.length === 0 ? (
+          <Empty description={t('common.noData')} />
+        ) : (
+          <Table<RepairOrder>
+            dataSource={repairs}
+            rowKey="id"
+            size="small"
+            pagination={false}
+            columns={[
+              {
+                title: t('service.repairNo'), dataIndex: 'repairNo',
+                render: (v: string, r: RepairOrder) => (
+                  <Button type="link" size="small" className="p-0" onClick={() => onViewRepair(r.id)}>{v}</Button>
+                ),
+              },
+              { title: t('service.title'), dataIndex: 'title' },
+              { title: t('common.status'), dataIndex: 'status', render: (v: string) => <StatusTag status={v as RepairStatus} statusMap={RepairStatusMeta} /> },
+              { title: t('service.submittedAt'), dataIndex: 'submittedAt', render: (v: string) => formatDateTime(v) },
+            ]}
+            onRow={(record) => ({ onClick: () => onViewRepair(record.id), className: 'cursor-pointer' })}
+          />
+        )}
+      </div>
+      <div>
+        <h4 className="mb-2 font-medium">{t('service.complaintTitle')}</h4>
+        {complaintLoading ? (
+          <Spin className="flex justify-center py-4" />
+        ) : complaints.length === 0 ? (
+          <Empty description={t('common.noData')} />
+        ) : (
+          <Table<Complaint>
+            dataSource={complaints}
+            rowKey="id"
+            size="small"
+            pagination={false}
+            columns={[
+              { title: t('service.complaintNo'), dataIndex: 'complaintNo' },
+              { title: t('service.title'), dataIndex: 'title' },
+              { title: t('common.status'), dataIndex: 'status', render: (v: string) => <StatusTag status={v as ComplaintStatus} statusMap={ComplaintStatusMeta} /> },
+              { title: t('service.submittedAt'), dataIndex: 'submittedAt', render: (v: string) => formatDateTime(v) },
+            ]}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface Props {
+  open: boolean;
+  id: string;
+  onClose: () => void;
+}
+
+export default function RenterDetailModal({ open, id, onClose }: Props) {
+  const { t } = useTranslation();
 
   const { data: renterData, isLoading, refetch } = useQuery({
     queryKey: ['renter-detail', id],
     queryFn: async () => {
       const [renter, accounts] = await Promise.all([
-        renterService.detail(id!),
-        renterService.getAccounts(id!),
+        renterService.detail(id),
+        renterService.getAccounts(id),
       ]);
       return { renter, accounts };
     },
-    enabled: !!id,
+    enabled: !!id && open,
   });
 
   const renter = renterData?.renter ?? null;
@@ -41,11 +191,15 @@ export default function RenterDetailPage() {
   const [accountForm] = Form.useForm();
   const [resetForm] = Form.useForm();
 
+  const [contractDetailId, setContractDetailId] = useState('');
+  const [billDetailId, setBillDetailId] = useState('');
+  const [repairDetailId, setRepairDetailId] = useState('');
+
   const handleCreateAccount = async () => {
     try {
       const values = await accountForm.validateFields();
       setSubmitting(true);
-      await renterService.createAccount(id!, values);
+      await renterService.createAccount(id, values);
       getMessageApi()?.success('账号创建成功');
       setAccountModalOpen(false);
       accountForm.resetFields();
@@ -71,14 +225,6 @@ export default function RenterDetailPage() {
       setSubmitting(false);
     }
   };
-
-  if (isLoading) {
-    return <div className="flex h-64 items-center justify-center"><Spin /></div>;
-  }
-
-  if (!renter) {
-    return <div className="text-center text-text-tertiary">租户不存在</div>;
-  }
 
   const accountColumns = [
     { title: '用户名', dataIndex: 'username', width: 160 },
@@ -121,122 +267,121 @@ export default function RenterDetailPage() {
   ];
 
   return (
-    <div>
-      <PageHeader title={renter.name} subtitle="租户详情" showBack />
-
-      <Tabs
-        items={[
-          {
-            key: 'info',
-            label: '基础信息',
-            children: (
-              <Descriptions bordered column={2}>
-                <Descriptions.Item label="姓名">{renter.name}</Descriptions.Item>
-                <Descriptions.Item label="性别">{GenderLabelKeys[renter.gender as keyof typeof GenderLabelKeys] ? t(GenderLabelKeys[renter.gender as keyof typeof GenderLabelKeys]) : '-'}</Descriptions.Item>
-                <Descriptions.Item label="出生日期">{renter.birthDate ?? '-'}</Descriptions.Item>
-                <Descriptions.Item label="证件类型">{IdTypeLabelKeys[renter.idType as keyof typeof IdTypeLabelKeys] ? t(IdTypeLabelKeys[renter.idType as keyof typeof IdTypeLabelKeys]) : renter.idType}</Descriptions.Item>
-                <Descriptions.Item label="证件号码">{maskIdCard(renter.idNumber)}</Descriptions.Item>
-                <Descriptions.Item label="手机号">{maskPhone(renter.phone)}</Descriptions.Item>
-                <Descriptions.Item label="备用手机">{renter.phoneAlt ?? '-'}</Descriptions.Item>
-                <Descriptions.Item label="邮箱">{renter.email ?? '-'}</Descriptions.Item>
-                <Descriptions.Item label="紧急联系人">{renter.emergencyContact ?? '-'}</Descriptions.Item>
-                <Descriptions.Item label="工作单位">{renter.company ?? '-'}</Descriptions.Item>
-                <Descriptions.Item label="职务">{renter.position ?? '-'}</Descriptions.Item>
-                <Descriptions.Item label="备注">{renter.remark ?? '-'}</Descriptions.Item>
-                <Descriptions.Item label="创建时间">{formatDateTime(renter.createdAt)}</Descriptions.Item>
-                <Descriptions.Item label="更新时间">{formatDateTime(renter.updatedAt)}</Descriptions.Item>
-              </Descriptions>
-            ),
-          },
-          {
-            key: 'accounts',
-            label: '登录账号',
-            children: (
-              <div>
-                <div className="mb-3 flex justify-end">
-                  <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.CUSTOMER_SERVICE]}>
-                    <Button type="primary" icon={<UserAddOutlined />} onClick={() => setAccountModalOpen(true)}>
-                      创建账号
-                    </Button>
-                  </PermissionGuard>
-                </div>
-                <Table
-                  columns={accountColumns}
-                  dataSource={accounts}
-                  rowKey="id"
-                  pagination={false}
-                  size="middle"
-                />
-              </div>
-            ),
-          },
-          {
-            key: 'units',
-            label: '房源',
-            children: (
-              <div className="space-y-2">
-                <p className="text-sm text-text-secondary">当前房源：</p>
-                {renter.currentUnit ? (
-                  <Tag color="blue">{renter.currentProjectName} - {renter.currentUnit}</Tag>
-                ) : (
-                  <span className="text-text-tertiary">暂无绑定房源</span>
-                )}
-              </div>
-            ),
-          },
-          {
-            key: 'contracts',
-            label: '合同',
-            children: <div className="text-text-tertiary">合同列表 — Sprint 3 实现</div>,
-          },
-          {
-            key: 'bills',
-            label: '账单',
-            children: <div className="text-text-tertiary">账单列表 — Sprint 4 实现</div>,
-          },
-          {
-            key: 'service',
-            label: '报修投诉',
-            children: <div className="text-text-tertiary">报修投诉记录 — Sprint 5 实现</div>,
-          },
-          {
-            key: 'app-preview',
-            label: t('tenantApp.tabLabel'),
-            children: <TenantAppPreview renter={renter} />,
-          },
-        ]}
-      />
-
+    <>
       <Modal
-        title="创建登录账号"
-        open={accountModalOpen}
-        onCancel={() => { setAccountModalOpen(false); accountForm.resetFields(); }}
-        onOk={handleCreateAccount}
-        confirmLoading={submitting}
+        open={open}
+        onCancel={onClose}
+        title={renter ? `${renter.name} - 租户详情` : '租户详情'}
+        footer={null}
+        width={1100}
+        destroyOnClose
       >
-        <Form form={accountForm} layout="vertical">
-          <Form.Item name="username" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
-            <Input placeholder="请输入登录用户名" />
-          </Form.Item>
-          <Form.Item name="password" label="初始密码" rules={[{ required: true, message: '请输入初始密码' }]}>
-            <Input.Password placeholder="请输入初始密码" />
-          </Form.Item>
-        </Form>
+        {isLoading ? (
+          <div className="flex h-48 items-center justify-center"><Spin /></div>
+        ) : !renter ? (
+          <div className="py-8 text-center text-text-tertiary">租户不存在</div>
+        ) : (
+          <Tabs
+            items={[
+              {
+                key: 'info',
+                label: '基础信息',
+                children: (
+                  <Descriptions bordered column={2}>
+                    <Descriptions.Item label="名称">{renter.name}</Descriptions.Item>
+                    <Descriptions.Item label="类型">{renter.type === 'COMPANY' ? '企业' : '个人'}</Descriptions.Item>
+                    <Descriptions.Item label="证件号码">{renter.idNumber ? maskIdCard(renter.idNumber) : '-'}</Descriptions.Item>
+                    <Descriptions.Item label="统一社会信用代码">{renter.creditCode ?? '-'}</Descriptions.Item>
+                    <Descriptions.Item label="联系人">{renter.contactName ?? '-'}</Descriptions.Item>
+                    <Descriptions.Item label="手机号">{renter.phone ? maskPhone(renter.phone) : '-'}</Descriptions.Item>
+                    <Descriptions.Item label="所属公司">{renter.company?.name ?? '-'}</Descriptions.Item>
+                    <Descriptions.Item label="备注" span={2}>{renter.remark ?? '-'}</Descriptions.Item>
+                    <Descriptions.Item label="创建时间">{formatDateTime(renter.createdAt)}</Descriptions.Item>
+                    <Descriptions.Item label="更新时间">{formatDateTime(renter.updatedAt)}</Descriptions.Item>
+                  </Descriptions>
+                ),
+              },
+              {
+                key: 'accounts',
+                label: '登录账号',
+                children: (
+                  <div>
+                    <div className="mb-3 flex justify-end">
+                      <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.CUSTOMER_SERVICE]}>
+                        <Button type="primary" icon={<UserAddOutlined />} onClick={() => setAccountModalOpen(true)}>
+                          创建账号
+                        </Button>
+                      </PermissionGuard>
+                    </div>
+                    <Table
+                      columns={accountColumns}
+                      dataSource={accounts}
+                      rowKey="id"
+                      pagination={false}
+                      size="middle"
+                    />
+                  </div>
+                ),
+              },
+              {
+                key: 'contracts',
+                label: '合同',
+                children: <RenterContracts renterId={renter.id} onViewContract={setContractDetailId} />,
+              },
+              {
+                key: 'bills',
+                label: '账单',
+                children: <RenterBills renterId={renter.id} onViewBill={setBillDetailId} />,
+              },
+              {
+                key: 'service',
+                label: '报修投诉',
+                children: <RenterServices renterId={renter.id} onViewRepair={setRepairDetailId} />,
+              },
+              {
+                key: 'app-preview',
+                label: t('tenantApp.tabLabel'),
+                children: <TenantAppPreview renter={renter} />,
+              },
+            ]}
+          />
+        )}
+
+        <Modal
+          title="创建登录账号"
+          open={accountModalOpen}
+          onCancel={() => { setAccountModalOpen(false); accountForm.resetFields(); }}
+          onOk={handleCreateAccount}
+          confirmLoading={submitting}
+        >
+          <Form form={accountForm} layout="vertical">
+            <Form.Item name="username" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
+              <Input placeholder="请输入登录用户名" />
+            </Form.Item>
+            <Form.Item name="password" label="初始密码" rules={[{ required: true, message: '请输入初始密码' }]}>
+              <Input.Password placeholder="请输入初始密码" />
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        <Modal
+          title="重置密码"
+          open={resetModalOpen}
+          onCancel={() => { setResetModalOpen(false); resetForm.resetFields(); }}
+          onOk={handleResetPassword}
+          confirmLoading={submitting}
+        >
+          <Form form={resetForm} layout="vertical">
+            <Form.Item name="newPassword" label="新密码" rules={[{ required: true, message: '请输入新密码' }]}>
+              <Input.Password placeholder="请输入新密码" />
+            </Form.Item>
+          </Form>
+        </Modal>
       </Modal>
 
-      <Modal
-        title="重置密码"
-        open={resetModalOpen}
-        onCancel={() => { setResetModalOpen(false); resetForm.resetFields(); }}
-        onOk={handleResetPassword}
-        confirmLoading={submitting}
-      >
-        <Form form={resetForm} layout="vertical">
-          <Form.Item name="newPassword" label="新密码" rules={[{ required: true, message: '请输入新密码' }]}>
-            <Input.Password placeholder="请输入新密码" />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+      <ContractDetailModal open={!!contractDetailId} id={contractDetailId} onClose={() => setContractDetailId('')} />
+      <BillDetailModal open={!!billDetailId} id={billDetailId} onClose={() => setBillDetailId('')} />
+      <RepairDetailModal open={!!repairDetailId} id={repairDetailId} onClose={() => setRepairDetailId('')} />
+    </>
   );
 }

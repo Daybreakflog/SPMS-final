@@ -95,16 +95,24 @@ export const ContractActionMatrix: Record<ContractStatus, ContractAction[]> = {
   [ContractStatus.TERMINATED]: [],
 };
 
+// ===== Contract action role matrix =====
+// 设计原则（来自审计 H-03）：
+//   1. ENGINEER / TENANT 全部不允许操作合同；
+//   2. CUSTOMER_SERVICE 仅可起草、提交、续签（不能删除已生效合同；删除全部交由管理员）；
+//   3. FINANCE 仅参与财务审批环节；
+//   4. terminate 视为终止已生效合同，必须由公司或平台管理员执行，PROJECT_ADMIN 不参与终止。
 export const ContractActionRoles: Record<ContractAction, RoleCode[]> = {
-  edit: ['CUSTOMER_SERVICE', 'PLATFORM_ADMIN', 'COMPANY_ADMIN'] as RoleCode[],
-  submit: ['CUSTOMER_SERVICE', 'PLATFORM_ADMIN', 'COMPANY_ADMIN'] as RoleCode[],
-  financeApprove: ['FINANCE', 'PLATFORM_ADMIN'] as RoleCode[],
-  financeReject: ['FINANCE', 'PLATFORM_ADMIN'] as RoleCode[],
-  adminSign: ['COMPANY_ADMIN', 'PROJECT_ADMIN', 'PLATFORM_ADMIN'] as RoleCode[],
-  adminReject: ['COMPANY_ADMIN', 'PROJECT_ADMIN', 'PLATFORM_ADMIN'] as RoleCode[],
-  renew: ['CUSTOMER_SERVICE', 'PLATFORM_ADMIN', 'COMPANY_ADMIN'] as RoleCode[],
-  terminate: ['PLATFORM_ADMIN', 'COMPANY_ADMIN', 'PROJECT_ADMIN'] as RoleCode[],
-  delete: ['CUSTOMER_SERVICE', 'PLATFORM_ADMIN', 'COMPANY_ADMIN'] as RoleCode[],
+  edit: [RoleCode.CUSTOMER_SERVICE, RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN],
+  submit: [RoleCode.CUSTOMER_SERVICE, RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN],
+  financeApprove: [RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN],
+  financeReject: [RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN],
+  adminSign: [RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.PLATFORM_ADMIN],
+  adminReject: [RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.PLATFORM_ADMIN],
+  renew: [RoleCode.CUSTOMER_SERVICE, RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN],
+  // 终止已生效合同：仅平台 / 公司管理员
+  terminate: [RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN],
+  // 删除：仅管理员（草稿 / 已驳回阶段；ContractActionMatrix 已禁止在 ACTIVE 状态下出现 delete）
+  delete: [RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN],
 };
 
 export const PaymentChannelLabelKeys: Record<PaymentChannel, string> = {

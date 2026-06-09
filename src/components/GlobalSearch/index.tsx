@@ -106,10 +106,10 @@ export default function GlobalSearch() {
 
       const contractResults: SearchResult[] =
         contracts.status === 'fulfilled'
-          ? ((contracts.value as { items: Array<{ id: string; contractNo: string; renterName: string }> }).items ?? []).map((c) => ({
+          ? ((contracts.value as { items: Array<{ id: string; contractNo: string; renterProfile?: { name?: string } }> }).items ?? []).map((c) => ({
               id: `contract-${c.id}`,
               title: c.contractNo,
-              description: c.renterName,
+              description: c.renterProfile?.name ?? '',
               category: 'contract' as const,
               icon: <FileTextOutlined />,
               path: `/contracts/${c.id}`,

@@ -13,24 +13,29 @@ export interface Building {
 export interface Floor {
   id: string;
   buildingId: string;
-  floorNumber: number;
+  floorNo: number;
   unitCount?: number;
   remark?: string;
 }
+
+export type UnitStatus = 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED';
 
 export interface Unit {
   id: string;
   floorId: string;
   buildingId?: string;
-  unitNumber: string;
+  buildingName?: string;
+  floor?: number;
+  name: string;
   houseType?: string;
-  buildingArea?: number;
+  area?: number;
   innerArea?: number;
   direction?: string;
   monthlyRent?: number;
   renterId?: string;
   renterName?: string;
   bindStatus: string;
+  status?: UnitStatus;
   remark?: string;
 }
 

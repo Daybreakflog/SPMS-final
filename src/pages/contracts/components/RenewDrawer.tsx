@@ -29,9 +29,9 @@ export default function RenewDrawer({ open, contract, onClose, onSuccess }: Rene
     return {
       startDate: originalEnd.add(1, 'day'),
       endDate: originalEnd.add(1, 'day').add(monthsDiff, 'month'),
-      monthlyRent: contract.monthlyRent,
-      deposit: contract.deposit,
-      paymentCycle: contract.paymentCycle,
+      monthlyRent: Number(contract.rentAmount),
+      deposit: Number(contract.depositAmount),
+      paymentCycle: contract.paymentMethod,
     };
   }, [contract]);
 
@@ -39,13 +39,16 @@ export default function RenewDrawer({ open, contract, onClose, onSuccess }: Rene
     if (!contract) return;
     setSubmitting(true);
     try {
+      // 后端 RenewContractDto 字段：contractNo / rentAmount / depositAmount / paymentMethod / terms
+      // remark 字段后端不接收，需让后端补或拼到 terms 里
       await contractService.renew(contract.id, {
+        contractNo: (values.contractNo as string) ?? `${contract.contractNo}-R`,
         startDate: dayjs(values.startDate as string).format('YYYY-MM-DD'),
         endDate: dayjs(values.endDate as string).format('YYYY-MM-DD'),
-        monthlyRent: values.monthlyRent as number,
-        deposit: values.deposit as number,
-        paymentCycle: values.paymentCycle as 'MONTHLY' | 'QUARTERLY' | 'YEARLY',
-        remark: values.remark as string | undefined,
+        rentAmount: values.monthlyRent as number,
+        depositAmount: values.deposit as number,
+        paymentMethod: values.paymentCycle as 'MONTHLY' | 'QUARTERLY' | 'YEARLY',
+        terms: values.remark as string | undefined,
       });
       getMessageApi()?.success(t('contract.renewSuccess'));
       onSuccess();

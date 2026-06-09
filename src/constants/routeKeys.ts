@@ -1,5 +1,5 @@
 export const RouteKeys = {
-  LOGIN: '/login',
+  LOGIN: '/auth/staff/login',
   DASHBOARD: '/dashboard',
 
   PLATFORM_COMPANIES: '/platform/companies',

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button, Form, Input, Select, Space, Popconfirm, Tag } from 'antd';
 import { PlusOutlined, ImportOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
@@ -18,13 +17,14 @@ import type { Renter, RenterListParams } from '@/types';
 import ImportWizard from '@/components/ImportWizard';
 import type { ImportResult } from '@/components/ImportWizard';
 import RenterFormDrawer from './components/RenterFormDrawer';
+import RenterDetailModal from './detail';
 
 export default function RenterListPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [editingRenter, setEditingRenter] = useState<Renter | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const { data, total, page, pageSize, loading, onPageChange, onFilterChange, onReset, refetch } =
     useTableQuery<Renter, RenterListParams>({
@@ -112,7 +112,7 @@ export default function RenterListPage() {
       width: 220,
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" onClick={() => navigate(`/customers/renters/${record.id}`)}>
+          <Button type="link" size="small" onClick={() => setDetailId(record.id)}>
             {t('common.detail')}
           </Button>
           <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.CUSTOMER_SERVICE]}>
@@ -173,6 +173,8 @@ export default function RenterListPage() {
         pageSize={pageSize}
         onPageChange={onPageChange}
       />
+
+      <RenterDetailModal open={!!detailId} id={detailId ?? ''} onClose={() => setDetailId(null)} />
 
       {importOpen && (
         <ImportWizard

@@ -64,8 +64,8 @@ export default function ContractFormDrawer({ open, contract, onClose, onSuccess 
     return `${months} ${t('contract.months')}`;
   }, [startDate, endDate, t]);
 
-  const handleRenterChange = (renterId: string) => {
-    const renter = renters.find((r) => r.id === renterId);
+  const handleRenterChange = (renterProfileId: string) => {
+    const renter = renters.find((r) => r.id === renterProfileId);
     if (renter) {
       form.setFieldsValue({
         renterName: renter.name,
@@ -107,7 +107,7 @@ export default function ContractFormDrawer({ open, contract, onClose, onSuccess 
       initialValues={initialValues}
     >
       <Divider titlePlacement="left">{t('contract.partyB')}</Divider>
-      <Form.Item name="renterId" label={t('contract.renter')} rules={[{ required: true }]}>
+      <Form.Item name="renterProfileId" label={t('contract.renter')} rules={[{ required: true }]}>
         <Select
           showSearch
           placeholder="请选择租户"

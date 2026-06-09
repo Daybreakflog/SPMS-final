@@ -2,6 +2,7 @@ export interface ReportParams {
   projectId?: string;
   startDate?: string;
   endDate?: string;
+  export?: boolean;
 }
 
 export interface RentIncomeParams extends ReportParams {
@@ -9,7 +10,7 @@ export interface RentIncomeParams extends ReportParams {
 }
 
 export interface OverdueParams extends ReportParams {
-  overdueRange?: string;
+  overdueOnly?: boolean;
 }
 
 export interface RepairAnalysisParams extends ReportParams {

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import FormDrawer from '@/components/FormDrawer';
 import { billingService } from '@/services/billing.service';
 import { BillingRule, FeeItemCycle } from '@/types/enums';
-import { BillingRuleLabelKeys, FeeItemCycleLabelKeys, BillingRuleUnitKeys } from '@/constants/status';
+import { BillingRuleLabelKeys, FeeItemCycleLabelKeys } from '@/constants/status';
 import type { FeeItem } from '@/types';
 
 interface Props {
@@ -31,10 +31,10 @@ export default function FeeItemFormDrawer({ open, feeItem, onClose, onSuccess }:
     setSubmitting(true);
     try {
       const { enabled, ...rest } = values;
+      // ⚠ 后端 FeeItemDto 不存 unit 字段（单位由 billingRule 推导）；status 是 number 不是 'ACTIVE'/'DISABLED'
       const data = {
         ...rest,
-        status: enabled ? 'ACTIVE' : 'DISABLED',
-        unit: BillingRuleUnitKeys[values.billingRule as BillingRule] ? t(BillingRuleUnitKeys[values.billingRule as BillingRule]) : '元',
+        status: enabled ? 1 : 0,
       };
 
       if (isEdit) {

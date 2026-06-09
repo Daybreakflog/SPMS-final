@@ -14,9 +14,8 @@ import { STALE_TIME, GC_TIME } from '@/constants/queryConfig';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: false,
       refetchOnWindowFocus: false,
-      // 默认按列表数据缓存，详情/静态数据在各自 useQuery 处覆盖
       staleTime: STALE_TIME.LIST,
       gcTime: GC_TIME.DEFAULT,
     },

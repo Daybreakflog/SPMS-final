@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { authService } from '@/services/auth.service';
 import { setTokens } from '@/api/token';
 import { useUserStore } from '@/store/user.store';
+import { normalizeUser } from '@/services/user.service';
 import { getMessageApi } from '@/utils/antd';
 import type { LoginParams } from '@/types';
 
@@ -20,7 +21,7 @@ export default function LoginPage() {
     try {
       const result = await authService.login(values);
       setTokens(result.accessToken, result.refreshToken);
-      setUser(result.user);
+      setUser(normalizeUser(result.user));
       getMessageApi()?.success(t('login.success'));
       navigate('/dashboard', { replace: true });
     } catch {

@@ -1,10 +1,8 @@
-import { useParams } from 'react-router-dom';
-import { Card, Descriptions, Table, Button, Space, Tag } from 'antd';
+import { Modal, Card, Descriptions, Table, Button, Space, Tag } from 'antd';
 import { PrinterOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { TableColumnsType } from 'antd';
-import PageHeader from '@/components/PageHeader';
 import StatusTag from '@/components/StatusTag';
 import MoneyDisplay from '@/components/MoneyDisplay';
 import PermissionGuard from '@/components/PermissionGuard';
@@ -17,14 +15,19 @@ import { getMessageApi } from '@/utils/antd';
 import { printElementById } from '@/utils/print';
 import { STALE_TIME } from '@/constants/queryConfig';
 
-export default function BillDetailPage () {
+interface Props {
+  open: boolean;
+  id: string;
+  onClose: () => void;
+}
+
+export default function BillDetailModal({ open, id, onClose }: Props) {
   const { t } = useTranslation();
-  const { id } = useParams<{ id: string }>();
 
   const { data: bill, isLoading, refetch } = useQuery({
     queryKey: ['bill-detail', id],
-    queryFn: () => billingService.billDetail(id!),
-    enabled: !!id,
+    queryFn: () => billingService.billDetail(id),
+    enabled: !!id && open,
     staleTime: STALE_TIME.DETAIL,
   });
 
@@ -52,16 +55,14 @@ export default function BillDetailPage () {
     { title: t('billing.paidAt'), dataIndex: 'paidAt', width: 180, render: (v: string) => formatDateTime(v) },
   ];
 
-  if (isLoading || !bill) {
-    return <Card loading={isLoading} />;
-  }
-
   return (
-    <div>
-      <PageHeader
-        title={`${t('billing.billDetail')} - ${bill.billNo}`}
-        showBack
-        extra={
+    <Modal
+      open={open}
+      onCancel={onClose}
+      title={t('billing.billDetail')}
+      width={1000}
+      footer={
+        bill ? (
           <Space>
             <Button icon={<PrinterOutlined />} onClick={() => printElementById('bill-print-area', bill.billNo)}>
               {t('common.print')}
@@ -77,52 +78,57 @@ export default function BillDetailPage () {
               )}
             </PermissionGuard>
           </Space>
-        }
-      />
+        ) : null
+      }
+      destroyOnClose
+    >
+      {isLoading || !bill ? (
+        <Card loading={isLoading} />
+      ) : (
+        <div id="bill-print-area">
+          <Card className="mb-4">
+            <div className="mb-4 flex items-center justify-between">
+              <Space size="large">
+                <span className="text-lg font-medium">{bill.billNo}</span>
+                <StatusTag status={bill.status as BillStatus} statusMap={BillStatusMeta} />
+                {bill.published ? <Tag color="blue">{t('billing.published')}</Tag> : <Tag>{t('billing.unpublished')}</Tag>}
+              </Space>
+              <Space size="large">
+                <div className="text-center">
+                  <div className="text-xs text-text-tertiary">{t('billing.amount')}</div>
+                  <div className="text-lg font-semibold"><MoneyDisplay value={bill.amount} /></div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-text-tertiary">{t('billing.paidAmount')}</div>
+                  <div className="text-lg font-semibold text-green-600"><MoneyDisplay value={bill.paidAmount} /></div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-text-tertiary">{t('billing.balance')}</div>
+                  <div className="text-lg font-semibold text-red-500"><MoneyDisplay value={bill.balance} /></div>
+                </div>
+              </Space>
+            </div>
+            <Descriptions column={3} bordered size="small">
+              <Descriptions.Item label={t('billing.renter')}>{bill.renterName}</Descriptions.Item>
+              <Descriptions.Item label={t('billing.unit')}>{bill.unitNumber}</Descriptions.Item>
+              <Descriptions.Item label={t('billing.feeItem')}>{bill.feeItemName}</Descriptions.Item>
+              <Descriptions.Item label={t('billing.period')}>{bill.period}</Descriptions.Item>
+              <Descriptions.Item label={t('billing.dueDate')}>{bill.dueDate}</Descriptions.Item>
+              <Descriptions.Item label={t('common.remark')}>{bill.remark || '-'}</Descriptions.Item>
+            </Descriptions>
+          </Card>
 
-      <div id="bill-print-area">
-      <Card className="mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <Space size="large">
-            <span className="text-lg font-medium">{bill.billNo}</span>
-            <StatusTag status={bill.status as BillStatus} statusMap={BillStatusMeta} />
-            {bill.published ? <Tag color="blue">{t('billing.published')}</Tag> : <Tag>{t('billing.unpublished')}</Tag>}
-          </Space>
-          <Space size="large">
-            <div className="text-center">
-              <div className="text-text-tertiary text-xs">{t('billing.amount')}</div>
-              <div className="text-lg font-semibold"><MoneyDisplay value={bill.amount} /></div>
-            </div>
-            <div className="text-center">
-              <div className="text-text-tertiary text-xs">{t('billing.paidAmount')}</div>
-              <div className="text-lg font-semibold text-green-600"><MoneyDisplay value={bill.paidAmount} /></div>
-            </div>
-            <div className="text-center">
-              <div className="text-text-tertiary text-xs">{t('billing.balance')}</div>
-              <div className="text-lg font-semibold text-red-500"><MoneyDisplay value={bill.balance} /></div>
-            </div>
-          </Space>
+          <Card title={t('billing.paymentRecords')}>
+            <Table<PaymentRecord>
+              columns={paymentColumns}
+              dataSource={bill.paymentRecords || []}
+              rowKey="id"
+              pagination={false}
+              locale={{ emptyText: t('billing.noPaymentRecords') }}
+            />
+          </Card>
         </div>
-        <Descriptions column={3} bordered size="small">
-          <Descriptions.Item label={t('billing.renter')}>{bill.renterName}</Descriptions.Item>
-          <Descriptions.Item label={t('billing.unit')}>{bill.unitNumber}</Descriptions.Item>
-          <Descriptions.Item label={t('billing.feeItem')}>{bill.feeItemName}</Descriptions.Item>
-          <Descriptions.Item label={t('billing.period')}>{bill.period}</Descriptions.Item>
-          <Descriptions.Item label={t('billing.dueDate')}>{bill.dueDate}</Descriptions.Item>
-          <Descriptions.Item label={t('common.remark')}>{bill.remark || '-'}</Descriptions.Item>
-        </Descriptions>
-      </Card>
-
-      <Card title={t('billing.paymentRecords')}>
-        <Table<PaymentRecord>
-          columns={paymentColumns}
-          dataSource={bill.paymentRecords || []}
-          rowKey="id"
-          pagination={false}
-          locale={{ emptyText: t('billing.noPaymentRecords') }}
-        />
-      </Card>
-      </div>
-    </div>
+      )}
+    </Modal>
   );
 }

@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from './test-utils';
+import { useUserStore } from '@/store/user.store';
+import { RoleCode, UserType } from '@/types/enums';
 
 const mockOverview = {
   occupancyRate: 92,
@@ -53,6 +55,18 @@ vi.mock('echarts-for-react/lib/core', () => ({
 describe('DashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useUserStore.setState({
+      user: {
+        id: 'test-admin',
+        username: 'admin',
+        realName: 'Admin',
+        roles: [RoleCode.PLATFORM_ADMIN],
+        companyId: 'c1',
+        companyName: 'Test Co',
+        projectIds: [],
+        userType: UserType.STAFF,
+      },
+    });
   });
 
   async function renderDashboard() {

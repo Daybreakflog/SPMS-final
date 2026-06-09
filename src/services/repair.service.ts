@@ -1,5 +1,5 @@
 import { http } from '@/api/request';
-import type { PageResult, RepairOrder, RepairListParams, RepairAssignDTO, RepairProgressDTO, RepairCompleteDTO, RepairRatingDTO, RepairMessage, RepairMessageDTO, RepairTimeline } from '@/types';
+import type { PageResult, RepairOrder, RepairListParams, RepairAssignDTO, RepairProgressDTO, RepairCompleteDTO, RepairRatingDTO, RepairMessage, RepairMessageDTO } from '@/types';
 
 export const repairService = {
   list:        (params: RepairListParams) => http.get<PageResult<RepairOrder>>('/repairs', params),
@@ -10,5 +10,4 @@ export const repairService = {
   rating:      (id: string, data: RepairRatingDTO) => http.post<void>(`/repairs/${id}/rating`, data),
   getMessages: (id: string) => http.get<RepairMessage[]>(`/repairs/${id}/messages`),
   sendMessage: (id: string, data: RepairMessageDTO) => http.post<void>(`/repairs/${id}/messages`, data),
-  getTimeline: (id: string) => http.get<RepairTimeline[]>(`/repairs/${id}/timeline`),
 };

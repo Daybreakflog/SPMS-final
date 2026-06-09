@@ -1,5 +1,9 @@
 import { http, HttpResponse } from 'msw';
 
+// ⚠ MSW DRIFT MARKER
+//   GET /api/reports/financial/fee-analysis 在 Swagger 1.0 中未定义，
+//   待后端实现费项分析报表接口后再启用。
+
 const rentIncomeData = {
   kpis: { totalIncome: 5680000, yoyGrowth: 12.5, momGrowth: 3.2, avgUnitPrice: 85.6 },
   chartData: [
@@ -31,7 +35,7 @@ const rentIncomeData = {
     ],
     total: 10,
     page: 1,
-    pageSize: 20,
+    pageSize: 10,
     totalPages: 1,
   },
 };
@@ -59,7 +63,7 @@ const collectionRateData = {
     ],
     total: 8,
     page: 1,
-    pageSize: 20,
+    pageSize: 10,
     totalPages: 1,
   },
 };
@@ -88,7 +92,7 @@ const overdueData = {
     ],
     total: 12,
     page: 1,
-    pageSize: 20,
+    pageSize: 10,
     totalPages: 1,
   },
 };
@@ -119,7 +123,7 @@ const repairAnalysisData = {
     ],
     total: 12,
     page: 1,
-    pageSize: 20,
+    pageSize: 10,
     totalPages: 1,
   },
   engineerRank: [
@@ -164,7 +168,7 @@ const satisfactionData = {
     ],
     total: 12,
     page: 1,
-    pageSize: 20,
+    pageSize: 10,
     totalPages: 1,
   },
 };

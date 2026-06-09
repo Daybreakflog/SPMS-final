@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, Form, Input, Select, Space, Tabs, Modal, message as antMessage } from 'antd';
+import { Button, Form, Input, Space, Tabs, Modal, message as antMessage } from 'antd';
 import { PlusOutlined, CloudUploadOutlined, DownloadOutlined, ExportOutlined, FilterOutlined, BellOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TableColumnsType } from 'antd';
 import PageHeader from '@/components/PageHeader';
@@ -22,16 +21,17 @@ import { exportToExcel } from '@/utils/export';
 import { STALE_TIME } from '@/constants/queryConfig';
 import BillFormDrawer from './components/BillFormDrawer';
 import BillGenerateModal from './components/BillGenerateModal';
+import BillDetailModal from './detail';
 
 export default function BillListPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [statusTab, setStatusTab] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [generateOpen, setGenerateOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const advancedFields: FilterField[] = [
     { key: 'billNo', label: t('billing.billNo'), type: 'string' },
@@ -116,7 +116,7 @@ export default function BillListPage() {
       width: 120,
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" onClick={() => navigate(`/billing/bills/${record.id}`)}>
+          <Button type="link" size="small" onClick={() => setDetailId(record.id)}>
             {t('common.detail')}
           </Button>
         </Space>
@@ -159,9 +159,11 @@ export default function BillListPage() {
           {t('common.batchPublish')}
         </Button>
       </PermissionGuard>
-      <Button size="small" icon={<BellOutlined />} onClick={handleBatchRemind}>
-        {t('billing.batchRemind')}
-      </Button>
+      <PermissionGuard roles={[RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN]}>
+        <Button size="small" icon={<BellOutlined />} onClick={handleBatchRemind}>
+          {t('billing.batchRemind')}
+        </Button>
+      </PermissionGuard>
       <Button size="small" icon={<ExportOutlined />} onClick={handleBatchExport}>
         {t('common.batchExport')}
       </Button>
@@ -202,16 +204,8 @@ export default function BillListPage() {
         onReset={onReset}
         collapsible={false}
       >
-        <Form.Item name="keyword" label={t('billing.billNo')}>
-          <Input placeholder={t('billing.billKeywordPlaceholder')} allowClear />
-        </Form.Item>
-        <Form.Item name="feeItemId" label={t('billing.feeItem')}>
-          <Select allowClear placeholder={t('common.all')} style={{ width: 140 }}>
-            <Select.Option value="fi-001">物业管理费</Select.Option>
-            <Select.Option value="fi-002">租金</Select.Option>
-            <Select.Option value="fi-003">电费</Select.Option>
-            <Select.Option value="fi-004">水费</Select.Option>
-          </Select>
+        <Form.Item name="renterProfileId" label={t('billing.renter')}>
+          <Input placeholder={t('billing.renterPlaceholder')} allowClear />
         </Form.Item>
       </SearchFilterBar>
 
@@ -244,8 +238,7 @@ export default function BillListPage() {
         pageSize={pageSize}
         onPageChange={onPageChange}
         onRow={(record) => ({
-          onClick: () => navigate(`/billing/bills/${record.id}`),
-          // 悬停时预取详情，点击后秒开
+          onClick: () => setDetailId(record.id),
           onMouseEnter: () =>
             queryClient.prefetchQuery({
               queryKey: ['bill-detail', record.id],
@@ -260,6 +253,8 @@ export default function BillListPage() {
         tableKey="bills"
         batchBar={batchBar}
       />
+
+      <BillDetailModal open={!!detailId} id={detailId ?? ''} onClose={() => setDetailId(null)} />
 
       <BillFormDrawer
         open={drawerOpen}

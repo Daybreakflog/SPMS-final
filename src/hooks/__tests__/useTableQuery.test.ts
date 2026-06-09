@@ -30,7 +30,7 @@ describe('useTableQuery', () => {
     );
 
     expect(result.current.page).toBe(1);
-    expect(result.current.pageSize).toBe(20);
+    expect(result.current.pageSize).toBe(10);
     expect(result.current.data).toEqual([{ id: '1' }]);
     expect(result.current.total).toBe(1);
     expect(result.current.loading).toBe(false);

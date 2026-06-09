@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { renderWithProviders } from './test-utils';
+import { useUserStore } from '@/store/user.store';
+import { RoleCode, UserType } from '@/types/enums';
 
 vi.mock('@/services/dashboard.service', () => ({
   dashboardService: {
@@ -27,6 +29,18 @@ describe('Dashboard Layout Customization', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    useUserStore.setState({
+      user: {
+        id: 'test-admin',
+        username: 'admin',
+        realName: 'Admin',
+        roles: [RoleCode.PLATFORM_ADMIN],
+        companyId: 'c1',
+        companyName: 'Test Co',
+        projectIds: [],
+        userType: UserType.STAFF,
+      },
+    });
   });
 
   async function renderDashboard() {

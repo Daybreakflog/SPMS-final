@@ -24,12 +24,12 @@ export default function TenantAppPreview({ renter }: Props) {
 
   const { data: contractsData, isLoading: contractLoading } = useQuery({
     queryKey: ['tenant-contracts', renter.id],
-    queryFn: () => contractService.list({ renterId: renter.id, pageSize: 3, page: 1 } as Parameters<typeof contractService.list>[0]),
+    queryFn: () => contractService.list({ renterProfileId: renter.id, pageSize: 3, page: 1 }),
   });
 
   const { data: billsData, isLoading: billLoading } = useQuery({
     queryKey: ['tenant-bills', renter.id],
-    queryFn: () => billingService.billList({ renterId: renter.id, pageSize: 3, page: 1, status: 'UNPAID' } as Parameters<typeof billingService.billList>[0]),
+    queryFn: () => billingService.billList({ renterProfileId: renter.id, pageSize: 3, page: 1, status: 'UNPAID' }),
   });
 
   const { data: repairsData, isLoading: repairLoading } = useQuery({
@@ -75,7 +75,7 @@ export default function TenantAppPreview({ renter }: Props) {
             <div>
               <p className="font-semibold text-white">{renter.name}</p>
               <p className="text-xs text-blue-100">
-                {renter.currentUnit ? `${renter.currentProjectName ?? ''} · ${renter.currentUnit}` : t('tenantApp.noUnit')}
+                {renter.company?.name ?? t('tenantApp.noUnit')}
               </p>
             </div>
           </div>
@@ -183,7 +183,7 @@ export default function TenantAppPreview({ renter }: Props) {
                       <List.Item className="px-0 py-1.5">
                         <div className="flex w-full items-center justify-between">
                           <div>
-                            <p className="text-xs font-medium">{r.title}</p>
+                            <p className="text-xs font-medium">{r.description?.slice(0, 24) ?? r.orderNo}</p>
                             <p className="text-[10px] text-gray-400">{formatDateTime(r.createdAt)}</p>
                           </div>
                           <Tag color={repairStatusColor[r.status] ?? 'default'} className="text-[10px]">

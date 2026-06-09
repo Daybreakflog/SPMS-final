@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { Button, DatePicker, Form, Input, Select, Segmented, Timeline, Card, Empty, Tag, Row, Col } from 'antd';
-import { HistoryOutlined, UnorderedListOutlined, DownloadOutlined, BarChartOutlined, WarningOutlined } from '@ant-design/icons';
+import { Button, DatePicker, Form, Input, Select, Segmented, Card, Tag, Row, Col } from 'antd';
+import { UnorderedListOutlined, DownloadOutlined, BarChartOutlined, WarningOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import PageHeader from '@/components/PageHeader';
 import SearchFilterBar from '@/components/SearchFilterBar';
@@ -30,101 +29,15 @@ function useStatusOptions() {
   return { moduleOptions, actionOptions, resultOptions };
 }
 
-function parseDiffNested(detail?: string): { field: string; before: string; after: string }[] {
-  if (!detail) return [];
-  try {
-    const obj = JSON.parse(detail);
-    if (!obj.old && !obj.new) return [];
-    const oldObj = (obj.old ?? {}) as Record<string, unknown>;
-    const newObj = (obj.new ?? {}) as Record<string, unknown>;
-    const keys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
-    const rows: { field: string; before: string; after: string }[] = [];
-    keys.forEach((k) => {
-      const before = JSON.stringify(oldObj[k] ?? '-');
-      const after = JSON.stringify(newObj[k] ?? '-');
-      if (before !== after) {
-        rows.push({ field: k, before: oldObj[k] !== undefined ? String(oldObj[k]) : '-', after: newObj[k] !== undefined ? String(newObj[k]) : '-' });
-      }
-    });
-    return rows;
-  } catch {
-    return [];
-  }
-}
-
-function ReplayPanel() {
-  const { t } = useTranslation();
-  const [resourceId, setResourceId] = useState('');
-  const [searchId, setSearchId] = useState('');
-
-  const { data: history, isLoading } = useQuery({
-    queryKey: ['audit-resource-history', searchId],
-    queryFn: () => auditService.resourceHistory(searchId),
-    enabled: !!searchId,
-  });
-
-  const items = (history as AuditLog[] | undefined) ?? [];
-
-  return (
-    <Card>
-      <div className="mb-4 flex gap-3">
-        <Input
-          placeholder={t('auditReplay.resourceIdPlaceholder')}
-          value={resourceId}
-          onChange={(e) => setResourceId(e.target.value)}
-          style={{ width: 300 }}
-          onPressEnter={() => setSearchId(resourceId)}
-        />
-        <Button type="primary" onClick={() => setSearchId(resourceId)} loading={isLoading}>
-          {t('auditReplay.searchHistory')}
-        </Button>
-      </div>
-
-      {items.length === 0 && searchId && !isLoading && (
-        <Empty description={t('auditReplay.noHistory')} />
-      )}
-
-      {items.length > 0 && (
-        <Timeline
-          items={items.map((log) => {
-            const diffs = parseDiffNested(log.detail);
-            return {
-              color: log.result === AuditResult.SUCCESS ? 'green' : 'red',
-              children: (
-                <div className="text-sm">
-                  <div className="mb-1 flex items-center gap-2">
-                    <span className="text-text-tertiary">{formatDateTime(log.createdAt)}</span>
-                    <span className="font-medium">{log.operatorName}</span>
-                    <Tag color="blue">{AuditActionLabelKeys[log.action as keyof typeof AuditActionLabelKeys] ? t(AuditActionLabelKeys[log.action as keyof typeof AuditActionLabelKeys]) : log.action}</Tag>
-                    <StatusTag status={log.result as AuditResult} statusMap={AuditResultMeta} />
-                  </div>
-                  {diffs.length > 0 && (
-                    <div className="mt-1 rounded bg-fill-quaternary p-2">
-                      {diffs.map((d) => (
-                        <div key={d.field} className="flex gap-2 text-xs">
-                          <span className="font-medium">{d.field}:</span>
-                          <span className="text-red-500 line-through">{d.before}</span>
-                          <span className="text-green-600">{d.after}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ),
-            };
-          })}
-        />
-      )}
-    </Card>
-  );
-}
+// 操作回放模式（基于 /system/audit-logs/resource-history）已移除，
+// 后端没有按资源 id 查时间线的接口
 
 export default function AuditLogsPage() {
   const { t } = useTranslation();
   const [detailRecord, setDetailRecord] = useState<AuditLog | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'replay' | 'stats'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'stats'>('list');
 
-  const { moduleOptions, actionOptions, resultOptions } = useStatusOptions();
+  const { moduleOptions, actionOptions } = useStatusOptions();
 
   const { data, total, page, pageSize, loading, onPageChange, onFilterChange, onReset } =
     useTableQuery<AuditLog, AuditLogListParams>({
@@ -154,7 +67,7 @@ export default function AuditLogsPage() {
   const actionCounts = data.reduce<Record<string, number>>((acc, log) => {
     acc[log.action] = (acc[log.action] ?? 0) + 1; return acc;
   }, {});
-  const failLogs = data.filter((d) => d.result === AuditResult.FAIL);
+  const failLogs = data.filter((d) => d.result === AuditResult.FAILURE);
 
   const handleSearch = (values: Partial<AuditLogListParams & { dateRange?: [unknown, unknown] }>) => {
     const { dateRange, ...rest } = values;
@@ -194,18 +107,15 @@ export default function AuditLogsPage() {
               <Button icon={<DownloadOutlined />} onClick={handleExport}>{t('report.exportExcel')}</Button>
               <Segmented
                 value={viewMode}
-                onChange={(v) => setViewMode(v as 'list' | 'replay' | 'stats')}
+                onChange={(v) => setViewMode(v as 'list' | 'stats')}
                 options={[
                   { value: 'list', icon: <UnorderedListOutlined />, label: t('audit.title') },
-                  { value: 'replay', icon: <HistoryOutlined />, label: t('auditReplay.replayMode') },
                   { value: 'stats', icon: <BarChartOutlined />, label: t('audit.statsMode') },
                 ]}
               />
             </div>
           }
         />
-
-        {viewMode === 'replay' && <ReplayPanel />}
 
         {viewMode === 'stats' && (
           <div className="space-y-4">
@@ -272,11 +182,8 @@ export default function AuditLogsPage() {
           <Form.Item name="action">
             <Select allowClear placeholder={t('audit.action')} style={{ width: 120 }} options={actionOptions} />
           </Form.Item>
-          <Form.Item name="result">
-            <Select allowClear placeholder={t('audit.result')} style={{ width: 100 }} options={resultOptions} />
-          </Form.Item>
-          <Form.Item name="operatorName">
-            <Input allowClear placeholder={t('audit.operatorName')} style={{ width: 140 }} />
+          <Form.Item name="keyword">
+            <Input allowClear placeholder={t('audit.keyword')} style={{ width: 140 }} />
           </Form.Item>
           <Form.Item name="dateRange">
             <RangePicker />
@@ -292,7 +199,7 @@ export default function AuditLogsPage() {
           pageSize={pageSize}
           onPageChange={onPageChange}
           scroll={{ x: 1100 }}
-          rowClassName={(record: AuditLog) => record.result === AuditResult.FAIL ? 'bg-red-50 hover:bg-red-100' : ''}
+          rowClassName={(record: AuditLog) => record.result === AuditResult.FAILURE ? 'bg-red-50 hover:bg-red-100' : ''}
         />
 
         <AuditDetailModal

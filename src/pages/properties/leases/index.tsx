@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button, Form, Input, Select, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
@@ -17,6 +16,7 @@ import { RoleCode, LeaseStatus } from '@/types/enums';
 import type { Lease, LeaseListParams } from '@/types';
 import CheckInDrawer from './components/CheckInDrawer';
 import CheckOutModal from './components/CheckOutModal';
+import LeaseDetailModal from './detail';
 
 function getDaysBetween(start: string, end?: string): number {
   const s = new Date(start);
@@ -26,10 +26,10 @@ function getDaysBetween(start: string, end?: string): number {
 
 export default function LeaseListPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
   const [checkOutLeaseId, setCheckOutLeaseId] = useState('');
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const { data, total, page, pageSize, loading, onPageChange, onFilterChange, onReset, refetch } =
     useTableQuery<Lease, LeaseListParams>({
@@ -63,7 +63,7 @@ export default function LeaseListPage() {
       title: t('lease.duration'),
       key: 'duration',
       width: 100,
-      render: (_, record) => `${getDaysBetween(record.checkInDate, record.checkOutDate)} 天`,
+      render: (_, record) => `${getDaysBetween(record.checkInDate, record.checkOutDate ?? undefined)} 天`,
     },
     {
       title: t('common.status'),
@@ -78,7 +78,7 @@ export default function LeaseListPage() {
       width: 160,
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" onClick={() => navigate(`/properties/leases/${record.id}`)}>
+          <Button type="link" size="small" onClick={() => setDetailId(record.id)}>
             {t('common.detail')}
           </Button>
           {record.status === 'ACTIVE' && (
@@ -131,6 +131,8 @@ export default function LeaseListPage() {
         pageSize={pageSize}
         onPageChange={onPageChange}
       />
+
+      <LeaseDetailModal open={!!detailId} id={detailId ?? ''} onClose={() => setDetailId(null)} />
 
       <CheckInDrawer
         open={checkInOpen}

@@ -1,5 +1,38 @@
 import { http } from '@/api/request';
 import type { PageResult, StaffUser, UserListParams, UserCreateDTO, UserUpdateDTO, UserAssignRolesDTO, UserAssignProjectsDTO, AssignUserProjectsDTO, ChangePasswordDTO } from '@/types';
+import type { RoleCode } from '@/types/enums';
+
+type RawRole = RoleCode | { role?: RoleCode; name?: string; label?: string; id?: unknown };
+type RawProjectId = string | { id: string; name?: string; label?: string };
+
+export function normalizeRoles(roles: unknown[]): RoleCode[] {
+  return (roles ?? []).flatMap((r): RoleCode[] => {
+    if (typeof r === 'string') return [r as RoleCode];
+    if (r && typeof r === 'object') {
+      const obj = r as Record<string, unknown>;
+      const code =
+        (typeof obj.role === 'string' ? obj.role : undefined) ??
+        (typeof obj.code === 'string' ? obj.code : undefined) ??
+        (typeof obj.name === 'string' ? obj.name : undefined);
+      if (code !== undefined) return [code as RoleCode];
+    }
+    return [];
+  });
+}
+
+export function normalizeProjectIds(projectIds: RawProjectId[]): string[] {
+  return projectIds.map((p) => (typeof p === 'string' ? p : p.id));
+}
+
+export function normalizeUser<T extends { roles: RawRole[]; projectIds: RawProjectId[] }>(
+  user: T,
+): Omit<T, 'roles' | 'projectIds'> & { roles: RoleCode[]; projectIds: string[] } {
+  return {
+    ...user,
+    roles: normalizeRoles(user.roles),
+    projectIds: normalizeProjectIds(user.projectIds),
+  };
+}
 
 export const userService = {
   list: (params: UserListParams) =>
@@ -26,6 +59,6 @@ export const userService = {
   batchAssignProjects: (data: AssignUserProjectsDTO) =>
     http.put<void>('/projects/assign-user-projects', data),
 
-  changePassword: (data: ChangePasswordDTO) =>
-    http.post<void>('/users/change-password', data),
+  changePassword: (id: string, data: ChangePasswordDTO) =>
+    http.patch<void>(`/users/${id}`, { password: data.newPassword }),
 };

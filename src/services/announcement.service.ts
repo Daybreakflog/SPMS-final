@@ -7,6 +7,6 @@ export const announcementService = {
   create:  (data: AnnouncementCreateDTO) => http.post<Announcement>('/announcements', data),
   update:  (id: string, data: AnnouncementUpdateDTO) => http.patch<Announcement>(`/announcements/${id}`, data),
   remove:  (id: string) => http.delete<void>(`/announcements/${id}`),
-  publish: (id: string) => http.patch<Announcement>(`/announcements/${id}`, { status: 'PUBLISHED', publishedAt: new Date().toISOString() }),
-  archive: (id: string) => http.patch<Announcement>(`/announcements/${id}`, { status: 'ARCHIVED' }),
+  publish: (id: string) => http.patch<Announcement>(`/announcements/${id}`, { publish: true }),
+  archive: (id: string) => http.patch<Announcement>(`/announcements/${id}`, { status: 0 }),
 };

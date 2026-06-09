@@ -1,13 +1,10 @@
 export interface Company {
   id: string;
   name: string;
-  creditCode?: string;
-  contactPerson: string;
-  contactPhone: string;
-  email?: string;
+  code?: string;
+  contact: string;
+  phone: string;
   address?: string;
-  businessLicense?: string;
-  remark?: string;
   status: 'ACTIVE' | 'DISABLED';
   projectCount: number;
   staffCount: number;

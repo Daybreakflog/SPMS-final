@@ -6,11 +6,11 @@ import type { RoleCode } from '@/types/enums';
 export function authLoader() {
   const token = getAccessToken();
   if (!token) {
-    return redirect('/login');
+    return redirect('/auth/staff/login');
   }
   const user = useUserStore.getState().user;
   if (!user) {
-    return redirect('/login');
+    return redirect('/auth/staff/login');
   }
   return null;
 }
@@ -27,7 +27,7 @@ export function guestLoader() {
 export function roleLoader(requiredRoles: RoleCode[]) {
   return ({ request }: { request: Request }) => {
     const user = useUserStore.getState().user;
-    if (!user) return redirect('/login');
+    if (!user) return redirect('/auth/staff/login');
     if (requiredRoles.length === 0) return null;
     const hasRole = requiredRoles.some((r) => user.roles.includes(r));
     if (!hasRole) {

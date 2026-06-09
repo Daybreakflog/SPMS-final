@@ -1,4 +1,4 @@
-import { Modal, Form, Input, Switch } from 'antd';
+import { Modal, Form, Input } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { complaintService } from '@/services/complaint.service';
@@ -20,7 +20,7 @@ export default function CloseModal({ open, complaintId, onClose, onSuccess }: Cl
     try {
       const values = await form.validateFields();
       setSubmitting(true);
-      await complaintService.close(complaintId, { reason: values.reason, followUp: values.followUp ?? false });
+      await complaintService.close(complaintId, { remark: values.remark });
       getMessageApi()?.success(t('service.closeSuccess'));
       form.resetFields();
       onSuccess();
@@ -40,12 +40,9 @@ export default function CloseModal({ open, complaintId, onClose, onSuccess }: Cl
       confirmLoading={submitting}
       destroyOnHidden
     >
-      <Form form={form} layout="vertical" initialValues={{ followUp: false }}>
-        <Form.Item name="reason" label={t('service.reason')} rules={[{ required: true, message: '请输入关闭原因' }]}>
-          <Input.TextArea rows={4} placeholder="请输入关闭原因" />
-        </Form.Item>
-        <Form.Item name="followUp" label={t('service.followUp')} valuePropName="checked">
-          <Switch />
+      <Form form={form} layout="vertical">
+        <Form.Item name="remark" label={t('service.reason')} rules={[{ required: true, message: '请输入关闭说明' }]}>
+          <Input.TextArea rows={4} placeholder="请输入关闭说明" />
         </Form.Item>
       </Form>
     </Modal>

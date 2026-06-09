@@ -21,6 +21,8 @@ interface DataTableProps<T extends object> {
   onRow?: TableProps<T>['onRow'];
   tableKey?: string;
   batchBar?: ReactNode;
+  expandable?: TableProps<T>['expandable'];
+  rowClassName?: TableProps<T>['rowClassName'];
 }
 
 const VIRTUAL_THRESHOLD = 200;
@@ -95,7 +97,7 @@ export default function DataTable<T extends object>({
   loading = false,
   total = 0,
   page = 1,
-  pageSize = 20,
+  pageSize = 10,
   onPageChange,
   rowKey = 'id',
   toolbar,
@@ -105,6 +107,8 @@ export default function DataTable<T extends object>({
   onRow,
   tableKey,
   batchBar,
+  expandable,
+  rowClassName,
 }: DataTableProps<T>) {
   const { t } = useTranslation();
 
@@ -280,12 +284,14 @@ export default function DataTable<T extends object>({
         loading={loading}
         rowKey={rowKey}
         rowSelection={rowSelection}
+        expandable={expandable}
         virtual={enableVirtual}
         scroll={virtualScroll}
         bordered={bordered}
         pagination={false}
         size="middle"
         onRow={onRow}
+        rowClassName={rowClassName}
         className={onRow ? '[&_.ant-table-row]:cursor-pointer' : ''}
         components={{
           header: { cell: ResizableCell },

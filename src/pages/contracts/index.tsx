@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button, Form, Input, DatePicker, Space, Tabs, Modal, Input as AInput } from 'antd';
 import { PlusOutlined, ExportOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
@@ -21,6 +20,7 @@ import type { ContractAction } from '@/constants/status';
 import { getMessageApi } from '@/utils/antd';
 import { exportToExcel } from '@/utils/export';
 import ContractFormDrawer from './components/ContractFormDrawer';
+import ContractDetailModal from './detail';
 
 const { RangePicker } = DatePicker;
 
@@ -38,11 +38,11 @@ function useContractActions() {
 
 export default function ContractListPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [statusTab, setStatusTab] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const getActions = useContractActions();
 
   const { data, total, page, pageSize, loading, onPageChange, onFilterChange, onReset, refetch } =
@@ -110,7 +110,7 @@ export default function ContractListPage() {
         const actions = getActions(record.status as ContractStatus);
         return (
           <Space size="small" wrap>
-            <Button type="link" size="small" onClick={() => navigate(`/contracts/${record.id}`)}>
+            <Button type="link" size="small" onClick={() => setDetailId(record.id)}>
               {t('common.detail')}
             </Button>
             {actions.includes('edit') && (
@@ -128,6 +128,7 @@ export default function ContractListPage() {
                 {t('common.delete')}
               </Button>
             )}
+            {/* 续签入口已移除，请走合同详情页的「续签」按钮（调用 POST /contracts/:id/renew） */}
           </Space>
         );
       },
@@ -156,9 +157,9 @@ export default function ContractListPage() {
         for (const c of approvable) {
           try {
             if (c.status === ContractStatus.PENDING_FINANCE) {
-              await contractService.financeApprove(c.id, { remark });
+              await contractService.financeApprove(c.id, { comment: remark });
             } else if (c.status === ContractStatus.PENDING_ADMIN) {
-              await contractService.adminSign(c.id, { remark });
+              await contractService.adminSign(c.id, { comment: remark });
             }
           } catch { /* continue */ }
         }
@@ -242,7 +243,7 @@ export default function ContractListPage() {
         page={page}
         pageSize={pageSize}
         onPageChange={onPageChange}
-        onRow={(record) => ({ onClick: () => navigate(`/contracts/${record.id}`) })}
+        onRow={(record) => ({ onClick: () => setDetailId(record.id) })}
         rowSelection={{
           selectedRowKeys,
           onChange: setSelectedRowKeys,
@@ -251,12 +252,15 @@ export default function ContractListPage() {
         batchBar={batchBar}
       />
 
+      <ContractDetailModal open={!!detailId} id={detailId ?? ''} onClose={() => setDetailId(null)} />
+
       <ContractFormDrawer
         open={drawerOpen}
         contract={editingContract}
         onClose={() => { setDrawerOpen(false); setEditingContract(null); }}
         onSuccess={() => { setDrawerOpen(false); setEditingContract(null); refetch(); }}
       />
+
     </div>
   );
 }

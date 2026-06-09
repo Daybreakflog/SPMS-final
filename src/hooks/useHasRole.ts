@@ -9,11 +9,6 @@ export function useHasRole(role: RoleCode): boolean {
 
 export function useHasAnyRole(requiredRoles: RoleCode[]): boolean {
   const roles = useUserStore((s) => s.user?.roles);
-  return useMemo(
-    () => {
-      if (!roles) return false;
-      return requiredRoles.some((r) => roles.includes(r));
-    },
-    [roles, requiredRoles],
-  );
+  if (!roles) return false;
+  return requiredRoles.some((r) => roles.includes(r));
 }

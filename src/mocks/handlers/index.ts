@@ -1,3 +1,4 @@
+import { settingHandlers } from './setting';
 import { authHandlers } from './auth';
 import { companyHandlers } from './company';
 import { projectHandlers } from './project';
@@ -11,12 +12,14 @@ import { paymentHandlers } from './payment';
 import { repairHandlers } from './repair';
 import { complaintHandlers } from './complaint';
 import { announcementHandlers } from './announcement';
-import { notificationHandlers } from './notification';
+import { notificationHandlers, notificationCenterHandlers } from './notification';
 import { dashboardHandlers } from './dashboard';
 import { reportHandlers } from './report';
 import { auditHandlers } from './audit';
+import { fileHandlers } from './files';
 
 export const handlers = [
+  ...settingHandlers,
   ...authHandlers,
   ...companyHandlers,
   ...projectHandlers,
@@ -31,7 +34,9 @@ export const handlers = [
   ...complaintHandlers,
   ...announcementHandlers,
   ...notificationHandlers,
+  ...notificationCenterHandlers,
   ...dashboardHandlers,
   ...reportHandlers,
   ...auditHandlers,
+  ...fileHandlers,
 ];

@@ -10,7 +10,7 @@ interface UsePaginationReturn extends PaginationState {
   reset: () => void;
 }
 
-export function usePagination(defaultPageSize = 20): UsePaginationReturn {
+export function usePagination(defaultPageSize = 10): UsePaginationReturn {
   const [state, setState] = useState<PaginationState>({
     page: 1,
     pageSize: defaultPageSize,

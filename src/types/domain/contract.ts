@@ -1,34 +1,29 @@
-export interface ContractApprovalRecord {
-  id: string;
-  action: string;
-  operatorId: string;
-  operatorName: string;
-  remark?: string;
-  createdAt: string;
-}
+// 后端 Contract 响应（来自实际抓包）：
+//   { id, projectId, renterProfileId, unitId, contractNo, startDate, endDate,
+//     rentAmount: string, depositAmount: string, paymentMethod, terms|null,
+//     attachmentUrl|null, status, createdById, createdAt, updatedAt,
+//     project:{...}, renterProfile:{...}, unit:{...} }
+//
+// 注意 rentAmount/depositAmount 后端返回的是字符串（数据库 Decimal 序列化），不是 number。
 
 export interface Contract {
   id: string;
+  projectId: string;
+  renterProfileId: string;
+  unitId?: string;
   contractNo: string;
-  renterId: string;
-  renterName: string;
-  renterIdNumber?: string;
-  unitId: string;
-  unitNumber: string;
-  buildingName?: string;
-  projectId?: string;
-  projectName?: string;
   startDate: string;
   endDate: string;
-  monthlyRent: number;
-  deposit: number;
-  paymentCycle: 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
+  rentAmount: string;
+  depositAmount: string;
+  paymentMethod: 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
+  terms?: string | null;
+  attachmentUrl?: string | null;
   status: string;
-  creatorId?: string;
-  creatorName?: string;
-  attachments?: string[];
-  remark?: string;
-  approvalRecords?: ContractApprovalRecord[];
+  createdById?: string;
   createdAt?: string;
   updatedAt?: string;
+  project?: { id: string; name: string };
+  renterProfile?: { id: string; name: string; phone?: string };
+  unit?: { id: string; name: string; code?: string };
 }

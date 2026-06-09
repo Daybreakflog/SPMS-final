@@ -43,23 +43,17 @@ export default function CompanyFormDrawer({ open, editingCompany, onClose, onSuc
       <Form.Item name="name" label="公司名称" rules={[{ required: true, message: '请输入公司名称' }]}>
         <Input placeholder="请输入公司名称" />
       </Form.Item>
-      <Form.Item name="creditCode" label="社会信用代码">
-        <Input placeholder="请输入社会信用代码" />
+      <Form.Item name="code" label="公司编号" rules={[{ required: true, message: '请输入公司编号' }]}>
+        <Input placeholder="请输入公司编号" />
       </Form.Item>
-      <Form.Item name="contactPerson" label="联系人" rules={[{ required: true, message: '请输入联系人' }]}>
+      <Form.Item name="contact" label="联系人" rules={[{ required: true, message: '请输入联系人' }]}>
         <Input placeholder="请输入联系人" />
       </Form.Item>
-      <Form.Item name="contactPhone" label="联系电话" rules={[{ required: true, message: '请输入联系电话' }]}>
+      <Form.Item name="phone" label="联系电话" rules={[{ required: true, message: '请输入联系电话' }]}>
         <Input placeholder="请输入联系电话" />
-      </Form.Item>
-      <Form.Item name="email" label="邮箱">
-        <Input placeholder="请输入邮箱" />
       </Form.Item>
       <Form.Item name="address" label="地址">
         <Input placeholder="请输入地址" />
-      </Form.Item>
-      <Form.Item name="remark" label="备注">
-        <Input.TextArea rows={3} placeholder="请输入备注" />
       </Form.Item>
     </FormDrawer>
   );

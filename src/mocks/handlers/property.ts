@@ -4,13 +4,13 @@ interface MockUnit {
   id: string;
   floorId: string;
   buildingId: string;
-  unitNumber: string;
+  name: string;
   houseType: string;
-  buildingArea: number;
+  area: number;
   innerArea: number;
   direction: string;
   monthlyRent: number;
-  renterId?: string;
+  renterProfileId?: string;
   renterName?: string;
   bindStatus: string;
   remark?: string;
@@ -19,7 +19,7 @@ interface MockUnit {
 interface MockFloor {
   id: string;
   buildingId: string;
-  floorNumber: number;
+  floorNo: number;
   unitCount: number;
   remark?: string;
   units: MockUnit[];
@@ -66,13 +66,13 @@ function initProjectBuildings(projectId: string): MockBuilding[] {
           id: `unit-${floorId}-${u + 1}`,
           floorId,
           buildingId,
-          unitNumber: `${f + 1}${String(u + 1).padStart(2, '0')}`,
+          name: `${f + 1}${String(u + 1).padStart(2, '0')}`,
           houseType: houseTypes[unitIdx % houseTypes.length],
-          buildingArea: 60 + (unitIdx % 80),
+          area: 60 + (unitIdx % 80),
           innerArea: 50 + (unitIdx % 70),
           direction: directions[unitIdx % directions.length],
           monthlyRent: 2000 + (unitIdx % 30) * 100,
-          renterId: isBound ? `renter-${String((unitIdx % 15) + 1).padStart(3, '0')}` : undefined,
+          renterProfileId: isBound ? `renter-${String((unitIdx % 15) + 1).padStart(3, '0')}` : undefined,
           renterName: isBound ? `租户${(unitIdx % 15) + 1}` : undefined,
           bindStatus: isBound ? 'BOUND' : 'UNBOUND',
         });
@@ -81,7 +81,7 @@ function initProjectBuildings(projectId: string): MockBuilding[] {
       floors.push({
         id: floorId,
         buildingId,
-        floorNumber: f + 1,
+        floorNo: f + 1,
         unitCount: unitsPerFloor,
         units,
       });
@@ -114,13 +114,13 @@ function buildTreeResponse(buildingList: MockBuilding[]) {
     children: b.floors.map((f) => ({
       id: f.id,
       key: f.id,
-      title: `${f.floorNumber}层`,
+      title: `${f.floorNo}层`,
       type: 'FLOOR' as const,
-      data: { id: f.id, buildingId: f.buildingId, floorNumber: f.floorNumber, unitCount: f.unitCount },
+      data: { id: f.id, buildingId: f.buildingId, floorNo: f.floorNo, unitCount: f.unitCount },
       children: f.units.map((u) => ({
         id: u.id,
         key: u.id,
-        title: `${u.unitNumber}`,
+        title: `${u.name}`,
         type: 'UNIT' as const,
         data: u,
       })),
@@ -199,14 +199,14 @@ export const propertyHandlers = [
         const floor: MockFloor = {
           id: `floor-${buildingId}-${b.floors.length + 1}`,
           buildingId,
-          floorNumber: (body.floorNumber as number) ?? b.floors.length + 1,
+          floorNo: (body.floorNo as number) ?? b.floors.length + 1,
           unitCount: 0,
           remark: body.remark as string | undefined,
           units: [],
         };
         b.floors.push(floor);
         b.totalFloors = b.floors.length;
-        return HttpResponse.json({ id: floor.id, key: floor.id, title: `${floor.floorNumber}层`, type: 'FLOOR', data: floor, children: [] }, { status: 201 });
+        return HttpResponse.json({ id: floor.id, key: floor.id, title: `${floor.floorNo}层`, type: 'FLOOR', data: floor, children: [] }, { status: 201 });
       }
     }
     return HttpResponse.json({ code: 404, message: '楼栋不存在', data: null }, { status: 404 });
@@ -219,7 +219,7 @@ export const propertyHandlers = [
         const f = b.floors.find((f) => f.id === params.id);
         if (f) {
           Object.assign(f, body);
-          return HttpResponse.json({ id: f.id, key: f.id, title: `${f.floorNumber}层`, type: 'FLOOR', data: f });
+          return HttpResponse.json({ id: f.id, key: f.id, title: `${f.floorNo}层`, type: 'FLOOR', data: f });
         }
       }
     }
@@ -251,9 +251,9 @@ export const propertyHandlers = [
             id: `unit-${floorId}-${f.units.length + 1}`,
             floorId,
             buildingId: b.id,
-            unitNumber: body.unitNumber as string,
+            name: body.name as string,
             houseType: (body.houseType as string) ?? '',
-            buildingArea: (body.buildingArea as number) ?? 0,
+            area: (body.area as number) ?? 0,
             innerArea: (body.innerArea as number) ?? 0,
             direction: (body.direction as string) ?? '',
             monthlyRent: (body.monthlyRent as number) ?? 0,
@@ -262,7 +262,7 @@ export const propertyHandlers = [
           f.units.push(unit);
           f.unitCount = f.units.length;
           b.totalUnits = b.floors.reduce((sum, fl) => sum + fl.units.length, 0);
-          return HttpResponse.json({ id: unit.id, key: unit.id, title: unit.unitNumber, type: 'UNIT', data: unit }, { status: 201 });
+          return HttpResponse.json({ id: unit.id, key: unit.id, title: unit.name, type: 'UNIT', data: unit }, { status: 201 });
         }
       }
     }
@@ -274,7 +274,7 @@ export const propertyHandlers = [
     const unit = findUnitGlobal(params.id as string);
     if (unit) {
       Object.assign(unit, body);
-      return HttpResponse.json({ id: unit.id, key: unit.id, title: unit.unitNumber, type: 'UNIT', data: unit });
+      return HttpResponse.json({ id: unit.id, key: unit.id, title: unit.name, type: 'UNIT', data: unit });
     }
     return HttpResponse.json({ code: 404, message: '单元不存在', data: null }, { status: 404 });
   }),
@@ -300,7 +300,7 @@ export const propertyHandlers = [
     const body = (await request.json()) as Record<string, unknown>;
     const unit = findUnitGlobal(params.id as string);
     if (unit) {
-      unit.renterId = body.renterId as string;
+      unit.renterProfileId = body.renterProfileId as string;
       unit.renterName = `租户`;
       unit.bindStatus = 'BOUND';
       return HttpResponse.json({ message: '绑定成功' });
@@ -311,7 +311,7 @@ export const propertyHandlers = [
   http.post('/api/properties/units/:id/unbind', async ({ params }) => {
     const unit = findUnitGlobal(params.id as string);
     if (unit) {
-      unit.renterId = undefined;
+      unit.renterProfileId = undefined;
       unit.renterName = undefined;
       unit.bindStatus = 'UNBOUND';
       return HttpResponse.json({ message: '解绑成功' });
@@ -319,4 +319,3 @@ export const propertyHandlers = [
     return HttpResponse.json({ code: 404, message: '单元不存在', data: null }, { status: 404 });
   }),
 ];
-

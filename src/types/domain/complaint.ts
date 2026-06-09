@@ -14,9 +14,7 @@ export interface Complaint {
   assigneeName?: string;
   analysis?: ComplaintAnalysisRecord;
   appeals?: ComplaintAppeal[];
-  timeline?: ComplaintTimeline[];
   closedReason?: string;
-  followUp?: boolean;
   submittedAt: string;
   closedAt?: string;
   createdAt: string;
@@ -45,13 +43,4 @@ export interface ComplaintAppeal {
   resolverName?: string;
   createdAt: string;
   resolvedAt?: string;
-}
-
-export interface ComplaintTimeline {
-  id: string;
-  action: string;
-  operatorId: string;
-  operatorName: string;
-  remark?: string;
-  createdAt: string;
 }

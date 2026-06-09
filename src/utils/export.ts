@@ -38,3 +38,18 @@ export function exportToExcel(
   const date = new Date().toISOString().slice(0, 10);
   XLSX.writeFile(wb, `${filename}_${date}.xlsx`);
 }
+
+/**
+ * 触发浏览器下载一个 Blob。封装 createObjectURL + a.click + 资源回收，
+ * 供导出中心等真实文件流下载复用。
+ */
+export function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}

@@ -5,7 +5,6 @@ export interface StaffUser {
   username: string;
   realName: string;
   phone: string;
-  email?: string;
   roles: RoleCode[];
   companyId: string;
   companyName: string;

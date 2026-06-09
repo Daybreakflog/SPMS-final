@@ -37,7 +37,7 @@ const mockUsers = {
   ],
   total: 2,
   page: 1,
-  pageSize: 20,
+  pageSize: 10,
 };
 
 vi.mock('@/services/user.service', () => ({

@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { Button, Form, Input, Select, Space, Popconfirm, Tag } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import SearchFilterBar from '@/components/SearchFilterBar';
 import DataTable from '@/components/DataTable';
+import PermissionGuard from '@/components/PermissionGuard';
 import { useTableQuery } from '@/hooks/useTableQuery';
 import { companyService } from '@/services/company.service';
 import { formatDateTime } from '@/utils/format';
+import { RoleCode } from '@/types/enums';
 import type { Company, CompanyListParams } from '@/types';
 import CompanyFormDrawer from './components/CompanyFormDrawer';
+import CompanyDetailModal from './detail';
 
 export default function CompanyListPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const { data, total, page, pageSize, loading, onPageChange, onFilterChange, onReset, refetch } =
     useTableQuery<Company, CompanyListParams>({
@@ -52,9 +54,9 @@ export default function CompanyListPage() {
 
   const columns: TableColumnsType<Company> = [
     { title: '公司名称', dataIndex: 'name', width: 200 },
-    { title: '社会信用代码', dataIndex: 'creditCode', width: 180 },
-    { title: '联系人', dataIndex: 'contactPerson', width: 100 },
-    { title: '联系电话', dataIndex: 'contactPhone', width: 130 },
+    { title: '公司编号', dataIndex: 'code', width: 140 },
+    { title: '联系人', dataIndex: 'contact', width: 100 },
+    { title: '联系电话', dataIndex: 'phone', width: 130 },
     { title: '项目数', dataIndex: 'projectCount', width: 80, align: 'center' },
     { title: '员工数', dataIndex: 'staffCount', width: 80, align: 'center' },
     {
@@ -80,17 +82,19 @@ export default function CompanyListPage() {
       width: 200,
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" onClick={() => navigate(`/platform/companies/${record.id}`)}>
+          <Button type="link" size="small" onClick={() => setDetailId(record.id)}>
             {t('common.detail')}
           </Button>
-          <Button type="link" size="small" onClick={() => handleEdit(record)}>
-            {t('common.edit')}
-          </Button>
-          <Popconfirm title={t('common.deleteConfirm')} onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" size="small" danger>
-              {t('common.delete')}
+          <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN]}>
+            <Button type="link" size="small" onClick={() => handleEdit(record)}>
+              {t('common.edit')}
             </Button>
-          </Popconfirm>
+            <Popconfirm title={t('common.deleteConfirm')} onConfirm={() => handleDelete(record.id)}>
+              <Button type="link" size="small" danger>
+                {t('common.delete')}
+              </Button>
+            </Popconfirm>
+          </PermissionGuard>
         </Space>
       ),
     },
@@ -101,9 +105,11 @@ export default function CompanyListPage() {
       <PageHeader
         title="物业公司管理"
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-            {t('common.create')}
-          </Button>
+          <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN]}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+              {t('common.create')}
+            </Button>
+          </PermissionGuard>
         }
       />
 
@@ -114,9 +120,6 @@ export default function CompanyListPage() {
       >
         <Form.Item name="name" label="公司名称">
           <Input placeholder="请输入公司名称" allowClear />
-        </Form.Item>
-        <Form.Item name="creditCode" label="社会信用代码">
-          <Input placeholder="请输入社会信用代码" allowClear />
         </Form.Item>
         <Form.Item name="status" label="状态">
           <Select placeholder="请选择" allowClear style={{ width: 120 }}>
@@ -135,6 +138,8 @@ export default function CompanyListPage() {
         pageSize={pageSize}
         onPageChange={onPageChange}
       />
+
+      <CompanyDetailModal open={!!detailId} id={detailId ?? ''} onClose={() => setDetailId(null)} />
 
       <CompanyFormDrawer
         open={drawerOpen}

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button, Form, Input, Select, Space, Tabs, Tag, Modal } from 'antd';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TableColumnsType } from 'antd';
 import { UserSwitchOutlined } from '@ant-design/icons';
@@ -16,12 +15,13 @@ import { RepairStatus, RepairType, Urgency, RoleCode } from '@/types/enums';
 import type { RepairOrder, RepairListParams } from '@/types';
 import { formatDateTime } from '@/utils/format';
 import { getMessageApi } from '@/utils/antd';
+import RepairDetailModal from './detail';
 
 export default function RepairListPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [statusTab, setStatusTab] = useState('');
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const { data, total, page, pageSize, loading, onPageChange, onFilterChange, onReset, refetch } =
     useTableQuery<RepairOrder, RepairListParams>({
@@ -66,7 +66,7 @@ export default function RepairListPage() {
         }
         for (const r of assignable) {
           try {
-            await repairService.assign(r.id, { engineerId });
+            await repairService.assign(r.id, { assigneeId: engineerId });
           } catch { /* continue */ }
         }
         setSelectedRowKeys([]);
@@ -130,7 +130,7 @@ export default function RepairListPage() {
       width: 80,
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" onClick={() => navigate(`/service/repairs/${record.id}`)}>
+          <Button type="link" size="small" onClick={() => setDetailId(record.id)}>
             {t('common.detail')}
           </Button>
         </Space>
@@ -141,7 +141,7 @@ export default function RepairListPage() {
   const batchBar = selectedRowKeys.length > 0 ? (
     <div className="mb-3 flex items-center gap-3 rounded-md bg-primary/5 px-4 py-2">
       <span className="text-sm font-medium">{t('common.selectedCount', { count: selectedRowKeys.length })}</span>
-      <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.CUSTOMER_SERVICE]}>
+      <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.CUSTOMER_SERVICE]}>
         <Button size="small" type="primary" icon={<UserSwitchOutlined />} onClick={handleBatchAssign}>
           {t('service.batchAssign')}
         </Button>
@@ -169,16 +169,9 @@ export default function RepairListPage() {
         <Form.Item name="keyword" label={t('service.repairNo')}>
           <Input placeholder={t('service.repairKeywordPlaceholder')} allowClear />
         </Form.Item>
-        <Form.Item name="repairType" label={t('service.repairType')}>
+        <Form.Item name="category" label={t('service.repairType')}>
           <Select allowClear placeholder={t('common.all')} style={{ width: 120 }}>
             {Object.entries(RepairTypeLabelKeys).map(([key, labelKey]) => (
-              <Select.Option key={key} value={key}>{t(labelKey)}</Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item name="urgency" label={t('service.urgency')}>
-          <Select allowClear placeholder={t('common.all')} style={{ width: 120 }}>
-            {Object.entries(UrgencyLabelKeys).map(([key, labelKey]) => (
               <Select.Option key={key} value={key}>{t(labelKey)}</Select.Option>
             ))}
           </Select>
@@ -196,6 +189,8 @@ export default function RepairListPage() {
         rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
         batchBar={batchBar}
       />
+
+      <RepairDetailModal open={!!detailId} id={detailId ?? ''} onClose={() => setDetailId(null)} />
     </div>
   );
 }

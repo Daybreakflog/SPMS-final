@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Form, Input } from 'antd';
+import { useState, useEffect } from 'react';
+import { Form, Input, Select } from 'antd';
 import FormDrawer from '@/components/FormDrawer';
 import { projectService } from '@/services/project.service';
+import { companyService } from '@/services/company.service';
 import { getMessageApi } from '@/utils/antd';
-import type { Project } from '@/types';
+import type { Project, Company } from '@/types';
 
 interface Props {
   open: boolean;
@@ -14,7 +15,18 @@ interface Props {
 
 export default function ProjectFormDrawer({ open, editingProject, onClose, onSuccess }: Props) {
   const [submitting, setSubmitting] = useState(false);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const isEdit = !!editingProject;
+
+  useEffect(() => {
+    if (open) {
+      companyService.list({ page: 1, pageSize: 200 }).then((res) => setCompanies(res.items));
+    }
+  }, [open]);
+
+  const initialValues = isEdit
+    ? { ...editingProject, status: editingProject?.status === 'DISABLED' ? 0 : 1 }
+    : { status: 1 };
 
   const handleSubmit = async (values: Record<string, unknown>) => {
     setSubmitting(true);
@@ -38,25 +50,34 @@ export default function ProjectFormDrawer({ open, editingProject, onClose, onSuc
       onClose={onClose}
       onSubmit={handleSubmit}
       submitting={submitting}
-      initialValues={isEdit ? editingProject : undefined}
+      initialValues={initialValues}
     >
+      <Form.Item name="companyId" label="所属公司">
+        <Select
+          showSearch
+          allowClear
+          placeholder="请选择所属公司"
+          optionFilterProp="label"
+          options={companies.map((c) => ({ value: c.id, label: c.name }))}
+        />
+      </Form.Item>
       <Form.Item name="name" label="项目名称" rules={[{ required: true, message: '请输入项目名称' }]}>
         <Input placeholder="请输入项目名称" />
       </Form.Item>
-      <Form.Item name="address" label="地址" rules={[{ required: true, message: '请输入项目地址' }]}>
+      <Form.Item name="code" label="项目编号" rules={[{ required: true, message: '请输入项目编号' }]}>
+        <Input placeholder="请输入项目编号" />
+      </Form.Item>
+      <Form.Item name="address" label="地址">
         <Input placeholder="请输入项目地址" />
       </Form.Item>
-      <Form.Item name="manager" label="项目负责人">
-        <Input placeholder="请输入项目负责人" />
+      <Form.Item name="description" label="描述">
+        <Input.TextArea rows={3} placeholder="请输入项目描述" />
       </Form.Item>
-      <Form.Item name="contactPhone" label="联系电话">
-        <Input placeholder="请输入联系电话" />
-      </Form.Item>
-      <Form.Item name="areaUnit" label="面积单位" initialValue="㎡">
-        <Input placeholder="如：㎡" />
-      </Form.Item>
-      <Form.Item name="remark" label="备注">
-        <Input.TextArea rows={3} placeholder="请输入备注" />
+      <Form.Item name="status" label="状态">
+        <Select>
+          <Select.Option value={1}>启用</Select.Option>
+          <Select.Option value={0}>禁用</Select.Option>
+        </Select>
       </Form.Item>
     </FormDrawer>
   );

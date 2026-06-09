@@ -25,11 +25,13 @@ export default function BillGenerateModal({ open, onClose, onSuccess }: Props) {
     const values = await form.validateFields();
     setLoading(true);
     try {
+      // ⚠ 后端 GenerateBillDto：单个 projectId、billDate(ISO)、可选 feeItemIds / renterProfileIds
+      //   原 period(YYYY-MM) / overrideExisting / projectIds[] 后端都不接收，需让 UI 改为单项目选择并改取月初日期
+      const periodStr = values.period?.format?.('YYYY-MM') || values.period;
       const res = await billingService.billGenerate({
-        projectIds: values.projectIds,
+        projectId: Array.isArray(values.projectIds) ? values.projectIds[0] : values.projectIds,
+        billDate: periodStr ? `${periodStr}-01T00:00:00.000Z` : new Date().toISOString(),
         feeItemIds: values.feeItemIds,
-        period: values.period?.format?.('YYYY-MM') || values.period,
-        overrideExisting: values.overrideExisting || false,
       });
       setResult(res);
     } finally {

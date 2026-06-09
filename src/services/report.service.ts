@@ -23,7 +23,4 @@ export const reportService = {
 
   satisfaction: (params: SatisfactionParams) =>
     http.get<ReportResponse<SatisfactionKpi, SatisfactionChart, SatisfactionDetail>>('/reports/operational/satisfaction', params as Record<string, unknown>),
-
-  feeAnalysis: (params?: Record<string, unknown>) =>
-    http.get<unknown>('/reports/financial/fee-analysis', params),
 };

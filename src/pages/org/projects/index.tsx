@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button, Form, Input, Select, Space, Popconfirm, Tag } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
@@ -14,12 +13,13 @@ import { formatDateTime } from '@/utils/format';
 import { RoleCode } from '@/types/enums';
 import type { Project, ProjectListParams } from '@/types';
 import ProjectFormDrawer from './components/ProjectFormDrawer';
+import ProjectDetailModal from './detail';
 
 export default function ProjectListPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const { data, total, page, pageSize, loading, onPageChange, onFilterChange, onReset, refetch } =
     useTableQuery<Project, ProjectListParams>({
@@ -88,7 +88,7 @@ export default function ProjectListPage() {
       width: 200,
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" onClick={() => navigate(`/org/projects/${record.id}`)}>
+          <Button type="link" size="small" onClick={() => setDetailId(record.id)}>
             {t('common.detail')}
           </Button>
           <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN]}>
@@ -124,7 +124,7 @@ export default function ProjectListPage() {
         onReset={onReset}
         collapsible={false}
       >
-        <Form.Item name="name" label="项目名称">
+        <Form.Item name="keyword" label="项目名称">
           <Input placeholder="请输入项目名称" allowClear />
         </Form.Item>
         <Form.Item name="status" label="状态">
@@ -144,6 +144,8 @@ export default function ProjectListPage() {
         pageSize={pageSize}
         onPageChange={onPageChange}
       />
+
+      <ProjectDetailModal open={!!detailId} id={detailId ?? ''} onClose={() => setDetailId(null)} />
 
       <ProjectFormDrawer
         open={drawerOpen}

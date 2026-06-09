@@ -7,9 +7,9 @@ const mockCompanies = {
     {
       id: 'comp-001',
       name: '翡翠湾物业',
-      creditCode: '91110000123456789A',
-      contactPerson: '张经理',
-      contactPhone: '13800138000',
+      code: 'PM0001',
+      contact: '张经理',
+      phone: '13800138000',
       email: 'zhang@example.com',
       address: '北京市朝阳区',
       projectCount: 3,
@@ -21,9 +21,9 @@ const mockCompanies = {
     {
       id: 'comp-002',
       name: '阳光城物业',
-      creditCode: '91110000987654321B',
-      contactPerson: '李经理',
-      contactPhone: '13900139000',
+      code: 'PM0002',
+      contact: '李经理',
+      phone: '13900139000',
       email: 'li@example.com',
       address: '上海市浦东新区',
       projectCount: 5,
@@ -35,7 +35,7 @@ const mockCompanies = {
   ],
   total: 2,
   page: 1,
-  pageSize: 20,
+  pageSize: 10,
 };
 
 vi.mock('@/services/company.service', () => ({

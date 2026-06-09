@@ -43,7 +43,7 @@ export const billingService = {
     http.post<BillGenerateResult>('/billing/bills/generate', data),
 
   billPublish: (ids: string[]) =>
-    http.post<void>('/billing/bills/publish', { ids }),
+    http.post<void>('/billing/bills/publish', { billIds: ids }),
 
   // Meter Readings
   meterReadingTemplate: () =>

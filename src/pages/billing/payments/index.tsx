@@ -6,10 +6,11 @@ import SearchFilterBar from '@/components/SearchFilterBar';
 import DataTable from '@/components/DataTable';
 import StatusTag from '@/components/StatusTag';
 import MoneyDisplay from '@/components/MoneyDisplay';
+import PermissionGuard from '@/components/PermissionGuard';
 import { useTableQuery } from '@/hooks/useTableQuery';
 import { paymentService } from '@/services/payment.service';
 import { PaymentChannelLabelKeys, PaymentOrderStatusMeta } from '@/constants/status';
-import { PaymentChannel, PaymentOrderStatus } from '@/types/enums';
+import { PaymentChannel, PaymentOrderStatus, RoleCode } from '@/types/enums';
 import { formatDate } from '@/utils/format';
 import type { PaymentOrder, PaymentOrderListParams } from '@/types';
 import { getMessageApi } from '@/utils/antd';
@@ -78,6 +79,10 @@ export default function PaymentOrderListPage() {
   ];
 
   return (
+    <PermissionGuard
+      roles={[RoleCode.FINANCE, RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN]}
+      fallback={<div className="py-16 text-center text-text-tertiary">{t('common.noPermission')}</div>}
+    >
     <div>
       <PageHeader title={t('billing.paymentTitle')} />
 
@@ -86,21 +91,14 @@ export default function PaymentOrderListPage() {
         onReset={onReset}
         collapsible={false}
       >
-        <Form.Item name="keyword" label={t('billing.orderNo')}>
-          <Input placeholder={t('billing.orderNoPlaceholder')} allowClear />
-        </Form.Item>
-        <Form.Item name="channel" label={t('billing.paymentChannel')}>
-          <Select allowClear placeholder={t('common.all')} style={{ width: 140 }}>
-            {Object.entries(PaymentChannelLabelKeys).map(([key, labelKey]) => (
-              <Select.Option key={key} value={key}>{t(labelKey)}</Select.Option>
-            ))}
-          </Select>
+        <Form.Item name="renterAccountId" label={t('billing.renterAccount')}>
+          <Input placeholder={t('billing.renterAccountPlaceholder')} allowClear />
         </Form.Item>
         <Form.Item name="status" label={t('common.status')}>
           <Select allowClear placeholder={t('common.all')} style={{ width: 120 }}>
-            <Select.Option value="PENDING">待支付</Select.Option>
-            <Select.Option value="SUCCESS">支付成功</Select.Option>
-            <Select.Option value="FAILED">支付失败</Select.Option>
+            {Object.entries(PaymentOrderStatusMeta).map(([key, meta]) => (
+              <Select.Option key={key} value={key}>{t(meta.labelKey)}</Select.Option>
+            ))}
           </Select>
         </Form.Item>
       </SearchFilterBar>
@@ -115,5 +113,6 @@ export default function PaymentOrderListPage() {
         onPageChange={onPageChange}
       />
     </div>
+    </PermissionGuard>
   );
 }

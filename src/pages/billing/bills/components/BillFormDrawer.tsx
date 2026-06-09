@@ -22,17 +22,26 @@ export default function BillFormDrawer({ open, onClose, onSuccess }: Props) {
   const handleSubmit = async (values: Record<string, unknown>) => {
     setSubmitting(true);
     try {
+      // ⚠ 后端 CreateManualBillDto 是发票式（一张账单 → N 个 items），不再是「一项一条账单」
+      //   表单只录单条费用项时，包成长度为 1 的 items 数组提交
+      //   TODO: 表单 UI 应升级为「账单头 + 多条费用项」结构
+      const billDate = dayjs(values.period as string).startOf('month').toISOString();
+      const dueDate = values.dueDate
+        ? dayjs(values.dueDate as string).toISOString()
+        : dayjs(values.period as string).date(15).toISOString();
       await billingService.billManualCreate({
-        renterId: values.renterId as string,
-        renterName: values.renterName as string,
-        unitId: values.unitId as string,
-        unitNumber: values.unitNumber as string,
-        feeItemId: values.feeItemId as string,
-        feeItemName: values.feeItemName as string,
-        period: dayjs(values.period as string).format('YYYY-MM'),
-        amount: values.amount as number,
-        dueDate: values.dueDate ? dayjs(values.dueDate as string).format('YYYY-MM-DD') : undefined,
-        remark: values.remark as string,
+        projectId: values.projectId as string,
+        renterProfileId: values.renterId as string,
+        billDate,
+        dueDate,
+        remark: values.remark as string | undefined,
+        items: [
+          {
+            feeItemId: values.feeItemId as string,
+            name: (values.feeItemName as string) || '费用项',
+            amount: values.amount as number,
+          },
+        ],
       });
       getMessageApi()?.success(t('common.saveSuccess'));
       onSuccess();

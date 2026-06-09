@@ -91,8 +91,13 @@ export default function RentIncomePage() {
     }
     return {
       tooltip: { trigger: 'axis' as const },
-      legend: { data: seriesList.map((s) => s.name) },
-      grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+      legend: {
+        data: seriesList.map((s) => s.name),
+        bottom: 0,
+        type: 'scroll' as const,
+        itemGap: 24,
+      },
+      grid: { left: '3%', right: '4%', bottom: '12%', containLabel: true },
       xAxis: { type: 'category' as const, data: chartData.map((d) => d.period) },
       yAxis: trendMode === 'actual'
         ? [{ type: 'value' as const, name: t('report.amount') }, { type: 'value' as const, name: '%', axisLabel: { formatter: '{value}%' } }]
@@ -106,6 +111,8 @@ export default function RentIncomePage() {
       title={t('report.rentIncomeTitle')}
       queryKey="report-rent-income"
       queryFn={(params) => reportService.rentIncome(params)}
+      chartTitle={t('report.incomeTrendChartTitle')}
+      chartDescription={t('report.incomeTrendChartDesc')}
       extraFilters={
         <>
           <Select

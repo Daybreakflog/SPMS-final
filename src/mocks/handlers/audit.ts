@@ -1,5 +1,9 @@
 import { http, HttpResponse } from 'msw';
 
+// ⚠ MSW DRIFT MARKER
+//   GET /api/system/audit-logs/resource-history 在 Swagger 1.0 中未定义，
+//   仅本地审计 UI 使用。后端需要补齐或前端改走通用 /api/system/audit-logs 过滤。
+
 const modules = ['USER', 'CONTRACT', 'BILLING', 'REPAIR', 'ANNOUNCEMENT', 'SYSTEM'];
 const actions = ['CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'LOGIN'];
 const operators = ['张管理', '李财务', '王客服', '赵工程', '钱运营', '孙管理'];
@@ -68,7 +72,7 @@ export const auditHandlers = [
   http.get('/api/system/audit-logs', ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page')) || 1;
-    const pageSize = Number(url.searchParams.get('pageSize')) || 20;
+    const pageSize = Number(url.searchParams.get('pageSize')) || 10;
     const module = url.searchParams.get('module');
     const action = url.searchParams.get('action');
     const result = url.searchParams.get('result');

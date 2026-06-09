@@ -1,16 +1,14 @@
+// 后端 Announcement 响应（来自 docs-json & 实际抓包）：
+//   { id, projectId, title, content, status:number, publishedAt|null,
+//     createdAt, updatedAt, project:{id,name} }
 export interface Announcement {
   id: string;
+  projectId: string;
   title: string;
-  type: string;
-  scope: string;
-  projectIds?: string[];
-  projectNames?: string[];
   content: string;
-  attachment?: string;
-  status: string;
-  publisherId?: string;
-  publisherName?: string;
-  publishedAt?: string;
+  status: number;
+  publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  project?: { id: string; name: string };
 }

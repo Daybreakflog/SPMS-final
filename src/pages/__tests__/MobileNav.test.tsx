@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { menuConfig } from '@/router/routes.config';
 
 // Mock hooks used by AppLayout
 vi.mock('@/store/user.store', () => ({
@@ -80,6 +81,24 @@ describe('Mobile Navigation', () => {
     expect(screen.getByText('仪表盘')).toBeInTheDocument();
     expect(screen.getByText('合同管理')).toBeInTheDocument();
     expect(screen.getByText('报修工单')).toBeInTheDocument();
+  });
+});
+
+// Sprint 17/18 新增页面在移动端导航中的可发现性
+describe('Mobile navigation — new pages visibility', () => {
+  function allPaths(): string[] {
+    const paths: string[] = [];
+    menuConfig.forEach((m) => {
+      if (m.path) paths.push(m.path);
+      m.children?.forEach((c) => { if (c.path) paths.push(c.path); });
+    });
+    return paths;
+  }
+
+  it('exposes the billing rules and report subscription pages', () => {
+    const paths = allPaths();
+    expect(paths).toContain('/system/billing-rules');
+    expect(paths).toContain('/reports/subscriptions');
   });
 });
 

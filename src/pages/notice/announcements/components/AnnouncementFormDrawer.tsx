@@ -1,11 +1,11 @@
-import { Form, Input, Select, Radio } from 'antd';
-import { useState, useMemo } from 'react';
+import { Form, Input, Select, Switch } from 'antd';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FormDrawer from '@/components/FormDrawer';
 import { announcementService } from '@/services/announcement.service';
-import { AnnouncementTypeLabelKeys } from '@/constants/status';
-import { AnnouncementScope } from '@/types/enums';
-import type { Announcement } from '@/types';
+import { projectService } from '@/services/project.service';
+import { useProjectStore } from '@/store/project.store';
+import type { Announcement, Project, AnnouncementCreateDTO } from '@/types';
 import { getMessageApi } from '@/utils/antd';
 
 interface AnnouncementFormDrawerProps {
@@ -15,27 +15,32 @@ interface AnnouncementFormDrawerProps {
   editingItem?: Announcement;
 }
 
-const projectOptions = [
-  { value: 'project-001', label: '翡翠湾花园' },
-  { value: 'project-002', label: '阳光城' },
-  { value: 'project-003', label: '锦绣华庭' },
-];
-
 export default function AnnouncementFormDrawer({ open, onClose, onSuccess, editingItem }: AnnouncementFormDrawerProps) {
   const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
-  const defaultScope = useMemo(() => (open && editingItem) ? (editingItem.scope || 'ALL') : 'ALL', [open, editingItem]);
-  const [scopeOverride, setScopeOverride] = useState<string | undefined>(undefined);
-  const scope = scopeOverride ?? defaultScope;
+  const [projects, setProjects] = useState<Project[]>([]);
+  const currentProject = useProjectStore((s) => s.currentProject);
+
+  useEffect(() => {
+    if (!open) return;
+    projectService.list({ page: 1, pageSize: 200 }).then((res) => setProjects(res.items));
+  }, [open]);
 
   const handleSubmit = async (values: Record<string, unknown>) => {
     try {
       setSubmitting(true);
+      // 后端 CreateAnnouncementDto 只接收 projectId / title / content / status / publish 五个字段
+      const payload: AnnouncementCreateDTO = {
+        projectId: values.projectId as string,
+        title: values.title as string,
+        content: values.content as string,
+        publish: (values.publish as boolean) ?? true,
+      };
       if (editingItem) {
-        await announcementService.update(editingItem.id, values as unknown as Parameters<typeof announcementService.update>[1]);
+        await announcementService.update(editingItem.id, payload);
         getMessageApi()?.success(t('announcement.updateSuccess'));
       } else {
-        await announcementService.create(values as unknown as Parameters<typeof announcementService.create>[0]);
+        await announcementService.create(payload);
         getMessageApi()?.success(t('announcement.createSuccess'));
       }
       onSuccess();
@@ -51,41 +56,36 @@ export default function AnnouncementFormDrawer({ open, onClose, onSuccess, editi
       onClose={onClose}
       onSubmit={handleSubmit}
       submitting={submitting}
-      initialValues={editingItem ? {
-        title: editingItem.title,
-        type: editingItem.type,
-        scope: editingItem.scope,
-        projectIds: editingItem.projectIds,
-        content: editingItem.content,
-        attachment: editingItem.attachment,
-      } : { scope: 'ALL' }}
+      initialValues={
+        editingItem
+          ? {
+              projectId: editingItem.projectId,
+              title: editingItem.title,
+              content: editingItem.content,
+              publish: true,
+            }
+          : {
+              projectId: currentProject?.id,
+              publish: true,
+            }
+      }
     >
+      <Form.Item name="projectId" label={t('announcement.selectProjects')} rules={[{ required: true, message: '请选择项目' }]}>
+        <Select
+          placeholder="请选择项目"
+          options={projects.map((p) => ({ value: p.id, label: p.name }))}
+          showSearch
+          optionFilterProp="label"
+        />
+      </Form.Item>
       <Form.Item name="title" label={t('announcement.announcementTitle')} rules={[{ required: true, message: '请输入标题' }]}>
         <Input placeholder="请输入公告标题" />
       </Form.Item>
-      <Form.Item name="type" label={t('announcement.type')} rules={[{ required: true, message: '请选择公告类型' }]}>
-        <Select placeholder="请选择公告类型">
-          {Object.entries(AnnouncementTypeLabelKeys).map(([key, labelKey]) => (
-            <Select.Option key={key} value={key}>{t(labelKey)}</Select.Option>
-          ))}
-        </Select>
-      </Form.Item>
-      <Form.Item name="scope" label={t('announcement.scope')} rules={[{ required: true }]}>
-        <Radio.Group onChange={(e) => setScopeOverride(e.target.value)}>
-          <Radio value={AnnouncementScope.ALL}>{t('announcement.scopeAll')}</Radio>
-          <Radio value={AnnouncementScope.PROJECT}>{t('announcement.scopeProject')}</Radio>
-        </Radio.Group>
-      </Form.Item>
-      {scope === AnnouncementScope.PROJECT && (
-        <Form.Item name="projectIds" label={t('announcement.selectProjects')} rules={[{ required: true, message: '请选择项目' }]}>
-          <Select mode="multiple" placeholder={t('announcement.selectProjects')} options={projectOptions} />
-        </Form.Item>
-      )}
       <Form.Item name="content" label={t('announcement.content')} rules={[{ required: true, message: '请输入公告内容' }]}>
         <Input.TextArea rows={8} placeholder="请输入公告内容" />
       </Form.Item>
-      <Form.Item name="attachment" label={t('announcement.attachment')}>
-        <Input placeholder="附件说明（可选）" />
+      <Form.Item name="publish" label="发布状态" valuePropName="checked" extra="勾选后立即推送到租户端；不勾则保留为草稿">
+        <Switch checkedChildren="立即发布" unCheckedChildren="保存草稿" />
       </Form.Item>
     </FormDrawer>
   );

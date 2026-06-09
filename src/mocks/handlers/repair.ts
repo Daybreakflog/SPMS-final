@@ -1,5 +1,8 @@
 import { http, HttpResponse } from 'msw';
 
+// ⚠ MSW DRIFT MARKER
+//   PATCH /api/repairs/:id/attachments 在 Swagger 1.0 中未定义，后端补齐前不可用于真实环境。
+
 const renterNames = ['张伟', '李芳', '王娜', '刘秀英', '陈敏', '杨静', '赵丽', '黄强', '周磊', '吴军', '徐洋', '孙勇', '胡艳', '朱杰', '高涛'];
 const engineerNames = ['工程师-王刚', '工程师-李强', '工程师-赵明', '工程师-孙磊', '工程师-周伟'];
 const repairTypes = ['ELECTRICAL', 'PLUMBING', 'DOOR_WINDOW', 'APPLIANCE', 'OTHER'] as const;
@@ -45,7 +48,7 @@ const repairs = Array.from({ length: 15 }, (_, i) => {
     repairNo: `RO-20250401-${String(i + 1).padStart(3, '0')}`,
     title: repairTitles[i],
     description: `${repairTitles[i]}，请尽快处理。位于${Math.floor(i / 3) + 1}楼${String((i % 4) + 1).padStart(2, '0')}室。`,
-    images: [],
+    images: [] as string[],
     renterId: `renter-${String((i % 15) + 1).padStart(3, '0')}`,
     renterName: renterNames[i % 15],
     unitId: `unit-${String((i % 10) + 1).padStart(3, '0')}`,
@@ -89,7 +92,7 @@ export const repairHandlers = [
   http.get('/api/repairs', ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page')) || 1;
-    const pageSize = Number(url.searchParams.get('pageSize')) || 20;
+    const pageSize = Number(url.searchParams.get('pageSize')) || 10;
     const keyword = url.searchParams.get('keyword');
     const status = url.searchParams.get('status');
     const repairType = url.searchParams.get('repairType');
@@ -112,6 +115,15 @@ export const repairHandlers = [
   http.get('/api/repairs/:id', ({ params }) => {
     const item = repairs.find((r) => r.id === params.id);
     if (!item) return HttpResponse.json({ code: 404, message: '工单不存在' }, { status: 404 });
+    return HttpResponse.json(item);
+  }),
+
+  http.patch('/api/repairs/:id/attachments', async ({ params, request }) => {
+    const body = (await request.json()) as { images: string[] };
+    const item = repairs.find((r) => r.id === params.id);
+    if (!item) return HttpResponse.json({ code: 404, message: '工单不存在' }, { status: 404 });
+    item.images = body.images ?? [];
+    item.updatedAt = new Date().toISOString();
     return HttpResponse.json(item);
   }),
 

@@ -2,8 +2,14 @@ import { create } from 'zustand';
 import type { AuthUser } from '@/types';
 import type { RoleCode } from '@/types/enums';
 import { storage } from '@/utils/storage';
+import { normalizeRoles } from '@/services/user.service';
 
 const USER_STORAGE_KEY = 'current_user';
+
+function normalizeStoredUser(user: AuthUser | null): AuthUser | null {
+  if (!user) return null;
+  return { ...user, roles: normalizeRoles(user.roles as unknown[]) as RoleCode[] };
+}
 
 interface UserState {
   user: AuthUser | null;
@@ -14,7 +20,7 @@ interface UserState {
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
-  user: storage.get<AuthUser>(USER_STORAGE_KEY),
+  user: normalizeStoredUser(storage.get<AuthUser>(USER_STORAGE_KEY)),
 
   setUser: (user) => {
     storage.set(USER_STORAGE_KEY, user);
