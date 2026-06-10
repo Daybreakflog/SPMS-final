@@ -23,6 +23,26 @@ const payments = Array.from({ length: 15 }, (_, i) => {
 });
 
 export const paymentHandlers = [
+  // POST /api/payments/orders — 创建支付订单
+  http.post('/api/payments/orders', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const newPayment = {
+      id: `pay-${String(payments.length + 1).padStart(3, '0')}`,
+      orderNo: `PAY-2026-${String(payments.length + 1).padStart(5, '0')}`,
+      renterId: body.renterId as string,
+      renterName: '当前租户',
+      amount: body.amount as number,
+      channel: (body.channel as string) || 'WECHAT',
+      status: 'PENDING',
+      billCount: Array.isArray(body.billIds) ? (body.billIds as string[]).length : 1,
+      description: (body.description as string) || '在线缴费',
+      paidAt: undefined,
+      createdAt: new Date().toISOString(),
+    };
+    payments.push(newPayment as typeof payments[0]);
+    return HttpResponse.json(newPayment, { status: 201 });
+  }),
+
   http.get('/api/payments/orders', ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page')) || 1;
@@ -45,6 +65,18 @@ export const paymentHandlers = [
     const payment = payments.find((p) => p.id === params.id);
     if (!payment) return HttpResponse.json({ code: 404, message: '订单不存在', data: null }, { status: 404 });
     return HttpResponse.json(payment);
+  }),
+
+  // POST /api/payments/notify — 支付回调（PaymentNotifyGuard）
+  http.post('/api/payments/notify', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const orderNo = body.orderNo as string;
+    const payment = payments.find((p) => p.orderNo === orderNo);
+    if (payment) {
+      (payment as { status: string }).status = 'SUCCESS';
+      (payment as { paidAt: string }).paidAt = new Date().toISOString();
+    }
+    return HttpResponse.json({ success: true });
   }),
 
   http.post('/api/payments/mock/success', async ({ request }) => {

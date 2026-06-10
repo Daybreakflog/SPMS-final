@@ -12,6 +12,7 @@ import { projectService } from '@/services/project.service';
 import { formatDateTime } from '@/utils/format';
 import { RoleCode } from '@/types/enums';
 import type { Project, ProjectListParams } from '@/types';
+import { isProjectActive } from '@/types';
 import ProjectFormDrawer from './components/ProjectFormDrawer';
 import ProjectDetailModal from './detail';
 
@@ -54,9 +55,14 @@ export default function ProjectListPage() {
 
   const columns: TableColumnsType<Project> = [
     { title: '项目名称', dataIndex: 'name', width: 180 },
-    { title: '所属公司', dataIndex: 'companyName', width: 180 },
-    { title: '楼栋数', dataIndex: 'buildingCount', width: 80, align: 'center' },
-    { title: '单元总数', dataIndex: 'unitCount', width: 90, align: 'center' },
+    {
+      title: '所属公司',
+      key: 'companyName',
+      width: 180,
+      render: (_, r) => r.company?.name ?? r.companyName ?? '-',
+    },
+    { title: '楼栋数', dataIndex: 'buildingCount', width: 80, align: 'center', render: (v: number) => v ?? '-' },
+    { title: '单元总数', dataIndex: 'unitCount', width: 90, align: 'center', render: (v: number) => v ?? '-' },
     {
       title: '入住率',
       dataIndex: 'occupancyRate',
@@ -64,14 +70,14 @@ export default function ProjectListPage() {
       align: 'center',
       render: (v: number) => (v != null ? `${v}%` : '-'),
     },
-    { title: '项目负责人', dataIndex: 'manager', width: 110 },
+    { title: '项目负责人', dataIndex: 'manager', width: 110, render: (v: string) => v || '-' },
     {
       title: '状态',
       dataIndex: 'status',
       width: 90,
-      render: (status: string) => (
-        <Tag color={status === 'ACTIVE' ? 'green' : 'default'}>
-          {status === 'ACTIVE' ? '启用' : '禁用'}
+      render: (status: Project['status']) => (
+        <Tag color={isProjectActive(status) ? 'green' : 'default'}>
+          {isProjectActive(status) ? '启用' : '禁用'}
         </Tag>
       ),
     },
@@ -129,8 +135,8 @@ export default function ProjectListPage() {
         </Form.Item>
         <Form.Item name="status" label="状态">
           <Select placeholder="请选择" allowClear style={{ width: 120 }}>
-            <Select.Option value="ACTIVE">启用</Select.Option>
-            <Select.Option value="DISABLED">禁用</Select.Option>
+            <Select.Option value={1}>启用</Select.Option>
+            <Select.Option value={0}>禁用</Select.Option>
           </Select>
         </Form.Item>
       </SearchFilterBar>

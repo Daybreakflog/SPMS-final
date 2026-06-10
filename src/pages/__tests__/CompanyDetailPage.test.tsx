@@ -12,11 +12,10 @@ vi.mock('@/services/project.service', () => ({
     list: vi.fn(),
   },
 }));
-vi.mock('@/services/user.service', () => ({
-  userService: {
-    list: vi.fn(),
-  },
-}));
+vi.mock('@/services/user.service', async () => {
+  const actual = await vi.importActual<typeof import('@/services/user.service')>('@/services/user.service');
+  return { ...actual, userService: { list: vi.fn() } };
+});
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
   return { ...actual, useParams: () => ({ id: 'company-001' }) };
@@ -27,17 +26,18 @@ import { projectService } from '@/services/project.service';
 import { userService } from '@/services/user.service';
 import CompanyDetailPage from '../platform/companies/detail';
 
+// 真实后端：公司 status 为数字、计数在 _count；项目/员工 status 也是数字；员工 roles 为嵌套对象
 const mockCompany = {
   id: 'company-001', name: '测试物业公司', code: 'TEST001', contact: '张三', phone: '13800138000',
-  email: 'test@example.com', address: '测试地址', status: 'ACTIVE', projectCount: 2, staffCount: 5,
+  email: 'test@example.com', address: '测试地址', status: 1, _count: { projects: 2, users: 5 },
   createdAt: '2024-01-01T00:00:00Z', remark: '',
 };
 const mockProjects = {
-  items: [{ id: 'p-001', name: '测试项目A', companyId: 'company-001', status: 'ACTIVE', createdAt: '2024-01-01T00:00:00Z', companyName: '测试物业', address: '', buildingCount: 2, unitCount: 20 }],
+  items: [{ id: 'p-001', name: '测试项目A', companyId: 'company-001', status: 1, createdAt: '2024-01-01T00:00:00Z', companyName: '测试物业', address: '', buildingCount: 2, unitCount: 20 }],
   total: 1, page: 1, pageSize: 50, totalPages: 1,
 };
 const mockUsers = {
-  items: [{ id: 'u-001', username: 'admin', realName: '管理员', phone: '13800138001', roles: ['PLATFORM_ADMIN'], status: 'ACTIVE', companyId: 'company-001', companyName: '测试物业', projectIds: [], createdAt: '2024-01-01', updatedAt: '2024-01-01' }],
+  items: [{ id: 'u-001', username: 'admin', realName: '管理员', phone: '13800138001', roles: [{ roleId: 'r-pa', role: { id: 'r-pa', name: 'PLATFORM_ADMIN', label: '平台管理员' } }], status: 1, companyId: 'company-001', company: { id: 'company-001', name: '测试物业' }, projects: [], createdAt: '2024-01-01', updatedAt: '2024-01-01' }],
   total: 1, page: 1, pageSize: 10, totalPages: 1,
 };
 

@@ -106,6 +106,9 @@ export default function RenterFormDrawer({ open, editingRenter, onClose, onSucce
       <Form.Item name="phone" label="手机号" rules={[zodFieldRule(renterSchema.shape.phone)]}>
         <Input placeholder="请输入手机号" />
       </Form.Item>
+      <Form.Item name="email" label="邮箱" rules={[{ type: 'email', message: '邮箱格式不正确' }]}>
+        <Input placeholder="请输入邮箱" />
+      </Form.Item>
 
       <div className="mb-3 mt-4 text-sm font-medium text-text-secondary">其他信息</div>
       <Form.Item name="remark" label="备注">

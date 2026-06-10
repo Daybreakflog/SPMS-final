@@ -72,8 +72,8 @@ export default function UserDetailModal({ open, id, onClose }: Props) {
                       <Descriptions.Item label="手机">{user.phone}</Descriptions.Item>
                       <Descriptions.Item label="所属公司">{user.companyName}</Descriptions.Item>
                       <Descriptions.Item label="状态">
-                        <Tag color={user.status === 'ACTIVE' ? 'green' : 'default'}>
-                          {user.status === 'ACTIVE' ? '启用' : '禁用'}
+                        <Tag color={user.status === 1 ? 'green' : 'default'}>
+                          {user.status === 1 ? '启用' : '禁用'}
                         </Tag>
                       </Descriptions.Item>
                       <Descriptions.Item label="创建时间">{formatDateTime(user.createdAt)}</Descriptions.Item>

@@ -7,6 +7,7 @@ export interface Renter {
   name: string;
   type?: 'PERSON' | 'COMPANY';
   phone?: string;
+  email?: string | null;
   idNumber?: string;
   idFrontUrl?: string;
   idBackUrl?: string;

@@ -1,8 +1,5 @@
 import { http, HttpResponse } from 'msw';
 
-// ⚠ MSW DRIFT MARKER
-//   PATCH /api/repairs/:id/attachments 在 Swagger 1.0 中未定义，后端补齐前不可用于真实环境。
-
 const renterNames = ['张伟', '李芳', '王娜', '刘秀英', '陈敏', '杨静', '赵丽', '黄强', '周磊', '吴军', '徐洋', '孙勇', '胡艳', '朱杰', '高涛'];
 const engineerNames = ['工程师-王刚', '工程师-李强', '工程师-赵明', '工程师-孙磊', '工程师-周伟'];
 const repairTypes = ['ELECTRICAL', 'PLUMBING', 'DOOR_WINDOW', 'APPLIANCE', 'OTHER'] as const;
@@ -118,13 +115,60 @@ export const repairHandlers = [
     return HttpResponse.json(item);
   }),
 
-  http.patch('/api/repairs/:id/attachments', async ({ params, request }) => {
-    const body = (await request.json()) as { images: string[] };
+  // POST /api/repairs — 租户提交报修
+  http.post('/api/repairs', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const newRepair = {
+      id: `repair-${String(repairs.length + 1).padStart(3, '0')}`,
+      repairNo: `RO-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(repairs.length + 1).padStart(3, '0')}`,
+      title: body.title as string,
+      description: body.description as string || '',
+      images: (body.images as string[]) ?? [],
+      renterId: 'renter-tc-01',
+      renterName: '张伟',
+      unitId: body.unitId as string || 'unit-001',
+      unitNumber: '101',
+      repairType: (body.repairType as string) || 'OTHER',
+      urgency: (body.urgency as string) || 'MEDIUM',
+      status: 'SUBMITTED',
+      engineerId: undefined,
+      engineerName: undefined,
+      rating: undefined,
+      ratingComment: undefined,
+      submittedAt: new Date().toISOString(),
+      assignedAt: undefined,
+      completedAt: undefined,
+      ratedAt: undefined,
+      timeline: [{
+        id: `tl-new-1`,
+        action: 'SUBMIT',
+        operatorId: 'renter-tc-01',
+        operatorName: '张伟',
+        remark: '提交报修',
+        createdAt: new Date().toISOString(),
+      }],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    repairs.push(newRepair as typeof repairs[0]);
+    return HttpResponse.json(newRepair, { status: 201 });
+  }),
+
+  // PATCH /api/repairs/:id — 更新工单基本信息
+  http.patch('/api/repairs/:id', async ({ params, request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
     const item = repairs.find((r) => r.id === params.id);
     if (!item) return HttpResponse.json({ code: 404, message: '工单不存在' }, { status: 404 });
-    item.images = body.images ?? [];
-    item.updatedAt = new Date().toISOString();
+    Object.assign(item, body, { updatedAt: new Date().toISOString() });
     return HttpResponse.json(item);
+  }),
+
+  // DELETE /api/repairs/:id
+  http.delete('/api/repairs/:id', ({ params }) => {
+    const idx = repairs.findIndex((r) => r.id === params.id);
+    if (idx === -1) return HttpResponse.json({ code: 404, message: '工单不存在' }, { status: 404 });
+    repairs.splice(idx, 1);
+    return HttpResponse.json(null, { status: 200 });
   }),
 
   http.post('/api/repairs/:id/assign', async ({ params, request }) => {
@@ -225,9 +269,4 @@ export const repairHandlers = [
     return HttpResponse.json(msg, { status: 201 });
   }),
 
-  http.get('/api/repairs/:id/timeline', ({ params }) => {
-    const item = repairs.find((r) => r.id === params.id);
-    if (!item) return HttpResponse.json({ code: 404, message: '工单不存在' }, { status: 404 });
-    return HttpResponse.json(item.timeline);
-  }),
 ];

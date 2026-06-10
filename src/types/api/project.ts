@@ -3,7 +3,8 @@ import type { PageParams } from './common';
 export interface ProjectListParams extends PageParams {
   keyword?: string;
   companyId?: string;
-  status?: string;
+  // 后端 status 为数字：1 启用 / 0 禁用
+  status?: number;
 }
 
 export interface ProjectCreateDTO {

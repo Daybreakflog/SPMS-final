@@ -8,6 +8,7 @@ import { formatDateTime } from '@/utils/format';
 import { RoleLabels } from '@/constants/roles';
 import { RoleCode } from '@/types/enums';
 import type { ProjectUser } from '@/types';
+import { isProjectActive } from '@/types';
 import PermissionGuard from '@/components/PermissionGuard';
 import { getMessageApi } from '@/utils/antd';
 
@@ -91,17 +92,17 @@ export default function ProjectDetailModal({ open, id, onClose }: Props) {
               children: (
                 <Descriptions bordered column={2}>
                   <Descriptions.Item label="项目名称">{project.name}</Descriptions.Item>
-                  <Descriptions.Item label="所属公司">{project.companyName}</Descriptions.Item>
+                  <Descriptions.Item label="所属公司">{project.company?.name ?? project.companyName ?? '-'}</Descriptions.Item>
                   <Descriptions.Item label="地址">{project.address}</Descriptions.Item>
                   <Descriptions.Item label="负责人">{project.manager || '-'}</Descriptions.Item>
                   <Descriptions.Item label="联系电话">{project.contactPhone || '-'}</Descriptions.Item>
                   <Descriptions.Item label="面积单位">{project.areaUnit || '-'}</Descriptions.Item>
-                  <Descriptions.Item label="楼栋数">{project.buildingCount}</Descriptions.Item>
-                  <Descriptions.Item label="单元总数">{project.unitCount}</Descriptions.Item>
+                  <Descriptions.Item label="楼栋数">{project.buildingCount ?? '-'}</Descriptions.Item>
+                  <Descriptions.Item label="单元总数">{project.unitCount ?? '-'}</Descriptions.Item>
                   <Descriptions.Item label="入住率">{project.occupancyRate != null ? `${project.occupancyRate}%` : '-'}</Descriptions.Item>
                   <Descriptions.Item label="状态">
-                    <Tag color={project.status === 'ACTIVE' ? 'green' : 'default'}>
-                      {project.status === 'ACTIVE' ? '启用' : '禁用'}
+                    <Tag color={isProjectActive(project.status) ? 'green' : 'default'}>
+                      {isProjectActive(project.status) ? '启用' : '禁用'}
                     </Tag>
                   </Descriptions.Item>
                   <Descriptions.Item label="创建时间">{formatDateTime(project.createdAt)}</Descriptions.Item>

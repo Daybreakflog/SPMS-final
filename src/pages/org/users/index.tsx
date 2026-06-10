@@ -76,9 +76,9 @@ export default function UserListPage() {
       title: '状态',
       dataIndex: 'status',
       width: 80,
-      render: (status: string) => (
-        <Tag color={status === 'ACTIVE' ? 'green' : 'default'}>
-          {status === 'ACTIVE' ? '启用' : '禁用'}
+      render: (status: number) => (
+        <Tag color={status === 1 ? 'green' : 'default'}>
+          {status === 1 ? '启用' : '禁用'}
         </Tag>
       ),
     },
@@ -145,8 +145,8 @@ export default function UserListPage() {
         </Form.Item>
         <Form.Item name="status" label="状态">
           <Select placeholder="请选择" allowClear style={{ width: 120 }}>
-            <Select.Option value="ACTIVE">启用</Select.Option>
-            <Select.Option value="DISABLED">禁用</Select.Option>
+            <Select.Option value={1}>启用</Select.Option>
+            <Select.Option value={0}>禁用</Select.Option>
           </Select>
         </Form.Item>
       </SearchFilterBar>

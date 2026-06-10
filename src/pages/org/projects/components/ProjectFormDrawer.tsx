@@ -5,6 +5,7 @@ import { projectService } from '@/services/project.service';
 import { companyService } from '@/services/company.service';
 import { getMessageApi } from '@/utils/antd';
 import type { Project, Company } from '@/types';
+import { isProjectActive } from '@/types/domain/project';
 
 interface Props {
   open: boolean;
@@ -25,7 +26,7 @@ export default function ProjectFormDrawer({ open, editingProject, onClose, onSuc
   }, [open]);
 
   const initialValues = isEdit
-    ? { ...editingProject, status: editingProject?.status === 'DISABLED' ? 0 : 1 }
+    ? { ...editingProject, status: isProjectActive(editingProject!.status) ? 1 : 0 }
     : { status: 1 };
 
   const handleSubmit = async (values: Record<string, unknown>) => {

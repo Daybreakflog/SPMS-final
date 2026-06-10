@@ -3,7 +3,8 @@ import type { PageParams } from './common';
 export interface FeeItemListParams extends PageParams {
   projectId?: string;
   code?: string;
-  status?: string;
+  // 后端 status 为数字：1 启用 / 0 禁用
+  status?: number;
 }
 
 // 对应后端 CreateFeeItemDto

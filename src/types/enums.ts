@@ -127,10 +127,11 @@ export enum Urgency {
   LOW = 'LOW',
 }
 
+// 后端 CreateComplaintDto.targetType 实际取值为 PROJECT / STAFF / EVENT
 export enum ComplaintTargetType {
+  PROJECT = 'PROJECT',
   STAFF = 'STAFF',
-  SERVICE = 'SERVICE',
-  FACILITY = 'FACILITY',
+  EVENT = 'EVENT',
 }
 
 export enum AppealStatus {

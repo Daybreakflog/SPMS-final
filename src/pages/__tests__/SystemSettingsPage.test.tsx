@@ -9,6 +9,7 @@ vi.mock('@/services/setting.service', () => ({
     updateNotification: vi.fn(),
     updateSecurity: vi.fn(),
   },
+  isSystemSettingsApiEnabled: () => true,
 }));
 
 vi.mock('@/components/PermissionGuard', () => ({

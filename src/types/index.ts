@@ -13,6 +13,7 @@ export type { FeeItem, Bill, PaymentRecord, PaymentOrder } from './domain/billin
 export type { StaffUser } from './domain/user';
 export type { Company } from './domain/company';
 export type { Project, ProjectUser } from './domain/project';
+export { isProjectActive } from './domain/project';
 export type { Renter, RenterAccount } from './domain/renter';
 export type { Building, Floor, Unit, UnitStatus, PropertyTreeNode } from './domain/property';
 export type { Lease } from './domain/lease';

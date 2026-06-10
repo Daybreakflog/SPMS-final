@@ -57,15 +57,15 @@ export default function CompanyListPage() {
     { title: '公司编号', dataIndex: 'code', width: 140 },
     { title: '联系人', dataIndex: 'contact', width: 100 },
     { title: '联系电话', dataIndex: 'phone', width: 130 },
-    { title: '项目数', dataIndex: 'projectCount', width: 80, align: 'center' },
-    { title: '员工数', dataIndex: 'staffCount', width: 80, align: 'center' },
+    { title: '项目数', key: 'projectCount', width: 80, align: 'center', render: (_, r) => r._count?.projects ?? r.projectCount ?? 0 },
+    { title: '员工数', key: 'staffCount', width: 80, align: 'center', render: (_, r) => r._count?.users ?? r.staffCount ?? 0 },
     {
       title: '状态',
       dataIndex: 'status',
       width: 90,
-      render: (status: string) => (
-        <Tag color={status === 'ACTIVE' ? 'green' : 'default'}>
-          {status === 'ACTIVE' ? '启用' : '禁用'}
+      render: (status: number) => (
+        <Tag color={status === 1 ? 'green' : 'default'}>
+          {status === 1 ? '启用' : '禁用'}
         </Tag>
       ),
     },
@@ -123,8 +123,8 @@ export default function CompanyListPage() {
         </Form.Item>
         <Form.Item name="status" label="状态">
           <Select placeholder="请选择" allowClear style={{ width: 120 }}>
-            <Select.Option value="ACTIVE">启用</Select.Option>
-            <Select.Option value="DISABLED">禁用</Select.Option>
+            <Select.Option value={1}>启用</Select.Option>
+            <Select.Option value={0}>禁用</Select.Option>
           </Select>
         </Form.Item>
       </SearchFilterBar>

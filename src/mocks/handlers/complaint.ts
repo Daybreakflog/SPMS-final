@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw';
 
 const complainantNames = ['张伟', '李芳', '王娜', '刘秀英', '陈敏', '杨静', '赵丽', '黄强', '周磊', '吴军', '徐洋', '孙勇'];
-const targetTypes = ['STAFF', 'SERVICE', 'FACILITY'] as const;
+const targetTypes = ['PROJECT', 'STAFF', 'EVENT'] as const;
 const severities = ['HIGH', 'MEDIUM', 'LOW'] as const;
 const statuses = ['SUBMITTED', 'ANALYZING', 'APPEALING', 'CLOSED'] as const;
 const targetNames = ['前台客服小王', '保洁服务', '电梯设施', '安保人员小李', '维修服务', '消防设施', '物业管理员', '绿化服务', '停车设施', '前台服务', '水电维修', '健身设施'];
@@ -127,6 +127,45 @@ export const complaintHandlers = [
     return HttpResponse.json(item);
   }),
 
+  // POST /api/complaints — 租户提交投诉
+  http.post('/api/complaints', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const baseDate = new Date();
+    const newComplaint = {
+      id: `complaint-${String(complaints.length + 1).padStart(3, '0')}`,
+      complaintNo: `CP-${baseDate.getFullYear()}${String(baseDate.getMonth() + 1).padStart(2, '0')}${String(baseDate.getDate()).padStart(2, '0')}-${String(complaints.length + 1).padStart(3, '0')}`,
+      title: body.title as string,
+      description: body.description as string || '',
+      images: (body.images as string[]) ?? [],
+      complainantId: 'renter-tc-01',
+      complainantName: '张伟',
+      targetType: (body.targetType as string) || 'PROJECT',
+      targetName: (body.targetName as string) || '',
+      severity: (body.severity as string) || 'MEDIUM',
+      status: 'SUBMITTED',
+      assigneeId: undefined,
+      assigneeName: undefined,
+      analysis: undefined,
+      appeals: [],
+      timeline: [{
+        id: `tl-c-new-1`,
+        action: 'SUBMIT',
+        operatorId: 'renter-tc-01',
+        operatorName: '张伟',
+        remark: '提交投诉',
+        createdAt: baseDate.toISOString(),
+      }],
+      closedReason: undefined,
+      followUp: undefined,
+      submittedAt: baseDate.toISOString(),
+      closedAt: undefined,
+      createdAt: baseDate.toISOString(),
+      updatedAt: baseDate.toISOString(),
+    };
+    complaints.push(newComplaint as unknown as typeof complaints[0]);
+    return HttpResponse.json(newComplaint, { status: 201 });
+  }),
+
   http.post('/api/complaints/:id/analysis', async ({ params, request }) => {
     const body = (await request.json()) as Record<string, unknown>;
     const item = complaints.find((c) => c.id === params.id);
@@ -230,9 +269,4 @@ export const complaintHandlers = [
     return HttpResponse.json(item);
   }),
 
-  http.get('/api/complaints/:id/timeline', ({ params }) => {
-    const item = complaints.find((c) => c.id === params.id);
-    if (!item) return HttpResponse.json({ code: 404, message: '投诉不存在' }, { status: 404 });
-    return HttpResponse.json(item.timeline);
-  }),
 ];

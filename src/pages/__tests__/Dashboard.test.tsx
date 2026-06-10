@@ -100,18 +100,22 @@ describe('DashboardPage', () => {
     });
   });
 
-  it('renders todo list items', async () => {
+  // 待办/最新公告子模块后端无对应接口，已降级为空（详见 dashboard/index.tsx 注释）。
+  it('renders todo card with empty state (degraded module)', async () => {
     await renderDashboard();
     await waitFor(() => {
-      expect(screen.getByText('待审批合同')).toBeInTheDocument();
+      expect(screen.getByText('待办事项')).toBeInTheDocument();
     });
+    expect(screen.getByText('暂无待办')).toBeInTheDocument();
+    expect(screen.queryByText('待审批合同')).not.toBeInTheDocument();
   });
 
-  it('renders latest announcements', async () => {
+  it('renders latest announcements card (degraded module)', async () => {
     await renderDashboard();
     await waitFor(() => {
-      expect(screen.getByText('系统维护通知')).toBeInTheDocument();
+      expect(screen.getByText('最新公告')).toBeInTheDocument();
     });
+    expect(screen.queryByText('系统维护通知')).not.toBeInTheDocument();
   });
 
   it('has project filter selector', async () => {

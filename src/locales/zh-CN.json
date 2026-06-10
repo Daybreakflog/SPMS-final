@@ -427,6 +427,8 @@
     "noPaymentRecords": "暂无支付记录",
     "orderNo": "订单号",
     "orderNoPlaceholder": "请输入订单号/租户名",
+    "renterAccount": "租户账号",
+    "renterAccountPlaceholder": "请输入订单号/租户名",
     "paymentAmount": "支付金额",
     "paymentChannel": "支付渠道",
     "paidAt": "支付时间",
@@ -933,9 +935,9 @@
       "low": "低"
     },
     "complaintTarget": {
+      "project": "项目",
       "staff": "员工",
-      "service": "服务",
-      "facility": "设施"
+      "event": "事件"
     },
     "appeal": {
       "pending": "待处理",

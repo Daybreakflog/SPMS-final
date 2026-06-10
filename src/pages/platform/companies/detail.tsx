@@ -16,7 +16,7 @@ const projectColumns: TableColumnsType<Project> = [
   { title: '项目编号', dataIndex: 'id', key: 'id', width: 140 },
   {
     title: '状态', dataIndex: 'status', key: 'status', width: 90,
-    render: (v: string) => <Tag color={v === 'ACTIVE' ? 'green' : 'default'}>{v === 'ACTIVE' ? '启用' : '禁用'}</Tag>,
+    render: (v: number) => <Tag color={v === 1 ? 'green' : 'default'}>{v === 1 ? '启用' : '禁用'}</Tag>,
   },
   { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 160, render: formatDateTime },
 ];
@@ -33,7 +33,7 @@ const staffColumns: TableColumnsType<StaffUser> = [
   { title: '手机', dataIndex: 'phone', key: 'phone', width: 130 },
   {
     title: '状态', dataIndex: 'status', key: 'status', width: 90,
-    render: (v: string) => <Tag color={v === 'ACTIVE' ? 'green' : 'default'}>{v === 'ACTIVE' ? '启用' : '禁用'}</Tag>,
+    render: (v: number) => <Tag color={v === 1 ? 'green' : 'default'}>{v === 1 ? '启用' : '禁用'}</Tag>,
   },
 ];
 
@@ -89,12 +89,12 @@ export default function CompanyDetailModal({ open, id, onClose }: Props) {
                   <Descriptions.Item label="联系电话">{company.phone}</Descriptions.Item>
                   <Descriptions.Item label="地址">{company.address || '-'}</Descriptions.Item>
                   <Descriptions.Item label="状态">
-                    <Tag color={company.status === 'ACTIVE' ? 'green' : 'default'}>
-                      {company.status === 'ACTIVE' ? '启用' : '禁用'}
+                    <Tag color={company.status === 1 ? 'green' : 'default'}>
+                      {company.status === 1 ? '启用' : '禁用'}
                     </Tag>
                   </Descriptions.Item>
-                  <Descriptions.Item label="项目数">{company.projectCount}</Descriptions.Item>
-                  <Descriptions.Item label="员工数">{company.staffCount}</Descriptions.Item>
+                  <Descriptions.Item label="项目数">{company._count?.projects ?? company.projectCount ?? 0}</Descriptions.Item>
+                  <Descriptions.Item label="员工数">{company._count?.users ?? company.staffCount ?? 0}</Descriptions.Item>
                   <Descriptions.Item label="创建时间">{formatDateTime(company.createdAt)}</Descriptions.Item>
                 </Descriptions>
               ),

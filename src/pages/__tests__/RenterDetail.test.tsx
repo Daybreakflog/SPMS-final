@@ -51,7 +51,7 @@ const bills = [
   { id: 'b1', billNo: 'BILL-2025001', renterId: 'r1', renterName: '张三', unitId: 'u1', unitNumber: 'A-301', feeItemName: '物业费', period: '2025-05', amount: 500, status: 'UNPAID' },
 ];
 const repairs = [
-  { id: 'rp1', repairNo: 'RO-2026001', title: '水管漏水', status: 'PENDING', submittedAt: '2026-06-01T00:00:00Z' },
+  { id: 'rp1', orderNo: 'RO-2026001', title: '水管漏水', status: 'SUBMITTED', createdAt: '2026-06-01T00:00:00Z' },
 ];
 const complaints = [
   { id: 'cp1', complaintNo: 'CO-2026001', title: '噪音投诉', status: 'PENDING', submittedAt: '2026-06-02T00:00:00Z' },
@@ -89,7 +89,7 @@ describe('RenterDetailPage', () => {
     await waitFor(() => expect(screen.getByText('合同')).toBeInTheDocument());
     fireEvent.click(screen.getByText('合同'));
     await waitFor(() =>
-      expect(contractService.list).toHaveBeenCalledWith(expect.objectContaining({ renterId: 'r1' })),
+      expect(contractService.list).toHaveBeenCalledWith(expect.objectContaining({ renterProfileId: 'r1' })),
     );
   });
 
@@ -105,7 +105,7 @@ describe('RenterDetailPage', () => {
     await waitFor(() => expect(screen.getByText('账单')).toBeInTheDocument());
     fireEvent.click(screen.getByText('账单'));
     await waitFor(() =>
-      expect(billingService.billList).toHaveBeenCalledWith(expect.objectContaining({ renterId: 'r1' })),
+      expect(billingService.billList).toHaveBeenCalledWith(expect.objectContaining({ renterProfileId: 'r1' })),
     );
   });
 

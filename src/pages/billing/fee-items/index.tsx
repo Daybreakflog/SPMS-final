@@ -72,7 +72,7 @@ export default function FeeItemListPage() {
       title: t('common.status'),
       dataIndex: 'status',
       width: 80,
-      render: (v: FeeItemStatus) => <StatusTag status={v} statusMap={FeeItemStatusMeta} />,
+      render: (v: number) => <StatusTag status={v === 1 ? FeeItemStatus.ACTIVE : FeeItemStatus.DISABLED} statusMap={FeeItemStatusMeta} />,
     },
     {
       title: t('common.operation'),
@@ -117,8 +117,8 @@ export default function FeeItemListPage() {
         </Form.Item>
         <Form.Item name="status" label={t('common.status')}>
           <Select allowClear placeholder={t('common.all')} style={{ width: 120 }}>
-            <Select.Option value="ACTIVE">启用</Select.Option>
-            <Select.Option value="DISABLED">禁用</Select.Option>
+            <Select.Option value={1}>启用</Select.Option>
+            <Select.Option value={0}>禁用</Select.Option>
           </Select>
         </Form.Item>
       </SearchFilterBar>

@@ -24,7 +24,7 @@ export default function FeeItemFormDrawer({ open, feeItem, onClose, onSuccess }:
 
   const initialValues = useMemo(() => {
     if (!feeItem) return { billingRule: BillingRule.FIXED, cycle: FeeItemCycle.MONTHLY, enabled: true };
-    return { ...feeItem, enabled: feeItem.status === 'ACTIVE' };
+    return { ...feeItem, enabled: feeItem.status === 1 };
   }, [feeItem]);
 
   const handleSubmit = async (values: Record<string, unknown> & { enabled?: boolean }) => {

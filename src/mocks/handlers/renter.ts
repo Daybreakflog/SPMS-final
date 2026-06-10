@@ -195,12 +195,12 @@ const TEST_RENTERS = [
 ];
 
 // 测试租户账号（密码：Tenant@2024）
-const TEST_RENTER_ACCOUNTS: Record<string, Array<{ id: string; renterId: string; username: string; status: string; lastLoginAt?: string; createdAt: string }>> = {
-  'renter-tc-01': [{ id: 'account-tc-01', renterId: 'renter-tc-01', username: 'tenant_zhangwei',  status: 'ACTIVE', lastLoginAt: new Date(2026, 5, 1).toISOString(),  createdAt: new Date(2025, 0, 1).toISOString() }],
-  'renter-tc-02': [{ id: 'account-tc-02', renterId: 'renter-tc-02', username: 'tenant_lina',      status: 'ACTIVE', lastLoginAt: new Date(2026, 5, 2).toISOString(),  createdAt: new Date(2025, 0, 1).toISOString() }],
-  'renter-tc-05': [{ id: 'account-tc-03', renterId: 'renter-tc-05', username: 'tenant_chenjing',  status: 'ACTIVE', lastLoginAt: new Date(2026, 5, 3).toISOString(),  createdAt: new Date(2025, 0, 1).toISOString() }],
-  'renter-tc-06': [{ id: 'account-tc-04', renterId: 'renter-tc-06', username: 'tenant_boyuan',    status: 'ACTIVE', lastLoginAt: new Date(2026, 5, 4).toISOString(),  createdAt: new Date(2025, 0, 1).toISOString() }],
-  'renter-tc-09': [{ id: 'account-tc-05', renterId: 'renter-tc-09', username: 'tenant_zhouxin',   status: 'ACTIVE', lastLoginAt: undefined,                           createdAt: new Date(2025, 0, 1).toISOString() }],
+const TEST_RENTER_ACCOUNTS: Record<string, Array<{ id: string; renterId: string; username: string; status: number; lastLoginAt?: string; createdAt: string }>> = {
+  'renter-tc-01': [{ id: 'account-tc-01', renterId: 'renter-tc-01', username: 'tenant_zhangwei',  status: 1, lastLoginAt: new Date(2026, 5, 1).toISOString(),  createdAt: new Date(2025, 0, 1).toISOString() }],
+  'renter-tc-02': [{ id: 'account-tc-02', renterId: 'renter-tc-02', username: 'tenant_lina',      status: 1, lastLoginAt: new Date(2026, 5, 2).toISOString(),  createdAt: new Date(2025, 0, 1).toISOString() }],
+  'renter-tc-05': [{ id: 'account-tc-03', renterId: 'renter-tc-05', username: 'tenant_chenjing',  status: 1, lastLoginAt: new Date(2026, 5, 3).toISOString(),  createdAt: new Date(2025, 0, 1).toISOString() }],
+  'renter-tc-06': [{ id: 'account-tc-04', renterId: 'renter-tc-06', username: 'tenant_boyuan',    status: 1, lastLoginAt: new Date(2026, 5, 4).toISOString(),  createdAt: new Date(2025, 0, 1).toISOString() }],
+  'renter-tc-09': [{ id: 'account-tc-05', renterId: 'renter-tc-09', username: 'tenant_zhouxin',   status: 1, lastLoginAt: undefined,                           createdAt: new Date(2025, 0, 1).toISOString() }],
 };
 
 const surnames = ['张', '李', '王', '刘', '陈', '杨', '赵', '黄', '周', '吴', '徐', '孙', '胡', '朱', '高', '林', '何', '郭', '马', '罗'];
@@ -241,7 +241,7 @@ const renterAccounts: Record<string, Array<{
   id: string;
   renterId: string;
   username: string;
-  status: string;
+  status: number;
   lastLoginAt?: string;
   createdAt: string;
 }>> = { ...TEST_RENTER_ACCOUNTS };
@@ -252,7 +252,7 @@ renters.forEach((r, i) => {
       id: `account-${String(i + 1).padStart(3, '0')}`,
       renterId: r.id,
       username: `tenant_${r.name}`,
-      status: 'ACTIVE',
+      status: 1,
       lastLoginAt: new Date(2025, 4, 20 - (i % 10)).toISOString(),
       createdAt: new Date(2024, 3, 1 + i * 3).toISOString(),
     }];
@@ -260,6 +260,11 @@ renters.forEach((r, i) => {
 });
 
 export const renterHandlers = [
+  // GET /api/renters/me — 租户端：我的档案
+  http.get('/api/renters/me', () => {
+    return HttpResponse.json(TEST_RENTERS[0]);
+  }),
+
   http.get('/api/renters', ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page')) || 1;
@@ -343,7 +348,7 @@ export const renterHandlers = [
       id: `account-${Date.now()}`,
       renterId,
       username: body.username as string,
-      status: 'ACTIVE',
+      status: 1,
       lastLoginAt: undefined,
       createdAt: new Date().toISOString(),
     };

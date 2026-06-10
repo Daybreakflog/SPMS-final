@@ -1,5 +1,6 @@
 import { settingHandlers } from './setting';
 import { authHandlers } from './auth';
+import { healthHandlers } from './health';
 import { companyHandlers } from './company';
 import { projectHandlers } from './project';
 import { userHandlers } from './user';
@@ -21,6 +22,7 @@ import { fileHandlers } from './files';
 export const handlers = [
   ...settingHandlers,
   ...authHandlers,
+  ...healthHandlers,
   ...companyHandlers,
   ...projectHandlers,
   ...userHandlers,

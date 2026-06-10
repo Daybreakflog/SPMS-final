@@ -26,6 +26,12 @@ const leases = Array.from({ length: 20 }, (_, i) => {
 });
 
 export const leaseHandlers = [
+  // GET /api/leases/my — 租户端：我的入住记录
+  http.get('/api/leases/my', () => {
+    const myLeases = leases.filter((l) => l.renterId === 'renter-tc-01');
+    return HttpResponse.json(myLeases.length ? myLeases : [leases[0]]);
+  }),
+
   http.get('/api/leases', ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page')) || 1;

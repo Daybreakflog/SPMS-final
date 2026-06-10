@@ -3,16 +3,16 @@ import { http, HttpResponse } from 'msw';
 const projectNames = ['示例项目1', '示例项目2', '示例项目3'];
 
 const feeItems = [
-  { id: 'fi-001', name: '物业管理费', code: 'WY-001', billingRule: 'FIXED' as const, unitPrice: 3.5, unit: '元/月', cycle: 'MONTHLY' as const, projectId: 'project-001', projectName: '示例项目1', status: 'ACTIVE' as const, remark: '固定物业管理费', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' },
-  { id: 'fi-002', name: '租金', code: 'ZJ-001', billingRule: 'BY_AREA' as const, unitPrice: 45, unit: '元/㎡', cycle: 'MONTHLY' as const, projectId: 'project-001', projectName: '示例项目1', status: 'ACTIVE' as const, remark: '按面积计算租金', createdAt: '2025-01-02T00:00:00Z', updatedAt: '2025-01-02T00:00:00Z' },
-  { id: 'fi-003', name: '电费', code: 'DF-001', billingRule: 'BY_METER' as const, unitPrice: 0.8, unit: '元/度', cycle: 'MONTHLY' as const, projectId: 'project-001', projectName: '示例项目1', status: 'ACTIVE' as const, remark: '按电表读数计费', createdAt: '2025-01-03T00:00:00Z', updatedAt: '2025-01-03T00:00:00Z' },
-  { id: 'fi-004', name: '水费', code: 'SF-001', billingRule: 'BY_METER' as const, unitPrice: 4.5, unit: '元/吨', cycle: 'MONTHLY' as const, projectId: 'project-002', projectName: '示例项目2', status: 'ACTIVE' as const, remark: '按水表读数计费', createdAt: '2025-01-04T00:00:00Z', updatedAt: '2025-01-04T00:00:00Z' },
-  { id: 'fi-005', name: '停车费', code: 'TC-001', billingRule: 'FIXED' as const, unitPrice: 300, unit: '元/月', cycle: 'MONTHLY' as const, projectId: 'project-002', projectName: '示例项目2', status: 'ACTIVE' as const, remark: '固定车位月租', createdAt: '2025-01-05T00:00:00Z', updatedAt: '2025-01-05T00:00:00Z' },
-  { id: 'fi-006', name: '卫生费', code: 'WS-001', billingRule: 'FIXED' as const, unitPrice: 50, unit: '元/月', cycle: 'QUARTERLY' as const, projectId: 'project-001', projectName: '示例项目1', status: 'ACTIVE' as const, remark: '公共区域卫生', createdAt: '2025-01-06T00:00:00Z', updatedAt: '2025-01-06T00:00:00Z' },
-  { id: 'fi-007', name: '空调费', code: 'KT-001', billingRule: 'BY_AREA' as const, unitPrice: 8, unit: '元/㎡', cycle: 'QUARTERLY' as const, projectId: 'project-003', projectName: '示例项目3', status: 'ACTIVE' as const, remark: '中央空调按面积分摊', createdAt: '2025-01-07T00:00:00Z', updatedAt: '2025-01-07T00:00:00Z' },
-  { id: 'fi-008', name: '网络费', code: 'WL-001', billingRule: 'FIXED' as const, unitPrice: 200, unit: '元/月', cycle: 'YEARLY' as const, projectId: 'project-002', projectName: '示例项目2', status: 'DISABLED' as const, remark: '宽带年费', createdAt: '2025-01-08T00:00:00Z', updatedAt: '2025-01-08T00:00:00Z' },
-  { id: 'fi-009', name: '天然气费', code: 'RQ-001', billingRule: 'BY_METER' as const, unitPrice: 3.2, unit: '元/m³', cycle: 'MONTHLY' as const, projectId: 'project-003', projectName: '示例项目3', status: 'ACTIVE' as const, remark: '按气表读数计费', createdAt: '2025-01-09T00:00:00Z', updatedAt: '2025-01-09T00:00:00Z' },
-  { id: 'fi-010', name: '装修保证金', code: 'ZX-001', billingRule: 'FIXED' as const, unitPrice: 5000, unit: '元', cycle: 'ONE_TIME' as const, projectId: 'project-001', projectName: '示例项目1', status: 'ACTIVE' as const, remark: '一次性收取', createdAt: '2025-01-10T00:00:00Z', updatedAt: '2025-01-10T00:00:00Z' },
+  { id: 'fi-001', name: '物业管理费', code: 'WY-001', billingRule: 'FIXED' as const, unitPrice: 3.5, unit: '元/月', cycle: 'MONTHLY' as const, projectId: 'project-001', projectName: '示例项目1', status: 1, remark: '固定物业管理费', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' },
+  { id: 'fi-002', name: '租金', code: 'ZJ-001', billingRule: 'BY_AREA' as const, unitPrice: 45, unit: '元/㎡', cycle: 'MONTHLY' as const, projectId: 'project-001', projectName: '示例项目1', status: 1, remark: '按面积计算租金', createdAt: '2025-01-02T00:00:00Z', updatedAt: '2025-01-02T00:00:00Z' },
+  { id: 'fi-003', name: '电费', code: 'DF-001', billingRule: 'BY_METER' as const, unitPrice: 0.8, unit: '元/度', cycle: 'MONTHLY' as const, projectId: 'project-001', projectName: '示例项目1', status: 1, remark: '按电表读数计费', createdAt: '2025-01-03T00:00:00Z', updatedAt: '2025-01-03T00:00:00Z' },
+  { id: 'fi-004', name: '水费', code: 'SF-001', billingRule: 'BY_METER' as const, unitPrice: 4.5, unit: '元/吨', cycle: 'MONTHLY' as const, projectId: 'project-002', projectName: '示例项目2', status: 1, remark: '按水表读数计费', createdAt: '2025-01-04T00:00:00Z', updatedAt: '2025-01-04T00:00:00Z' },
+  { id: 'fi-005', name: '停车费', code: 'TC-001', billingRule: 'FIXED' as const, unitPrice: 300, unit: '元/月', cycle: 'MONTHLY' as const, projectId: 'project-002', projectName: '示例项目2', status: 1, remark: '固定车位月租', createdAt: '2025-01-05T00:00:00Z', updatedAt: '2025-01-05T00:00:00Z' },
+  { id: 'fi-006', name: '卫生费', code: 'WS-001', billingRule: 'FIXED' as const, unitPrice: 50, unit: '元/月', cycle: 'QUARTERLY' as const, projectId: 'project-001', projectName: '示例项目1', status: 1, remark: '公共区域卫生', createdAt: '2025-01-06T00:00:00Z', updatedAt: '2025-01-06T00:00:00Z' },
+  { id: 'fi-007', name: '空调费', code: 'KT-001', billingRule: 'BY_AREA' as const, unitPrice: 8, unit: '元/㎡', cycle: 'QUARTERLY' as const, projectId: 'project-003', projectName: '示例项目3', status: 1, remark: '中央空调按面积分摊', createdAt: '2025-01-07T00:00:00Z', updatedAt: '2025-01-07T00:00:00Z' },
+  { id: 'fi-008', name: '网络费', code: 'WL-001', billingRule: 'FIXED' as const, unitPrice: 200, unit: '元/月', cycle: 'YEARLY' as const, projectId: 'project-002', projectName: '示例项目2', status: 0, remark: '宽带年费', createdAt: '2025-01-08T00:00:00Z', updatedAt: '2025-01-08T00:00:00Z' },
+  { id: 'fi-009', name: '天然气费', code: 'RQ-001', billingRule: 'BY_METER' as const, unitPrice: 3.2, unit: '元/m³', cycle: 'MONTHLY' as const, projectId: 'project-003', projectName: '示例项目3', status: 1, remark: '按气表读数计费', createdAt: '2025-01-09T00:00:00Z', updatedAt: '2025-01-09T00:00:00Z' },
+  { id: 'fi-010', name: '装修保证金', code: 'ZX-001', billingRule: 'FIXED' as const, unitPrice: 5000, unit: '元', cycle: 'ONE_TIME' as const, projectId: 'project-001', projectName: '示例项目1', status: 1, remark: '一次性收取', createdAt: '2025-01-10T00:00:00Z', updatedAt: '2025-01-10T00:00:00Z' },
 ];
 
 const renterNames = ['张伟', '李芳', '王娜', '刘秀英', '陈敏', '杨静', '赵丽', '黄强', '周磊', '吴军', '徐洋', '孙勇', '胡艳', '朱杰', '高涛', '林敏', '何磊', '郭芳', '马丽', '罗刚'];
@@ -77,7 +77,7 @@ export const billingHandlers = [
     if (keyword) filtered = filtered.filter((f) => f.name.includes(keyword) || (f.code && f.code.includes(keyword)));
     if (billingRule) filtered = filtered.filter((f) => f.billingRule === billingRule);
     if (projectId) filtered = filtered.filter((f) => f.projectId === projectId);
-    if (status) filtered = filtered.filter((f) => f.status === status);
+    if (status) filtered = filtered.filter((f) => f.status === Number(status));
 
     const total = filtered.length;
     const items = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -102,7 +102,7 @@ export const billingHandlers = [
       cycle: body.cycle as string || 'MONTHLY',
       projectId: body.projectId as string || '',
       projectName: body.projectName as string || '',
-      status: (body.status as string) || 'ACTIVE',
+      status: (body.status as number) ?? 1,
       remark: body.remark as string || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

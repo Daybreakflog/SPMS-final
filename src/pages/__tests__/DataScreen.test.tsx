@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from './test-utils';
+import { useUserStore } from '@/store/user.store';
+import { RoleCode, UserType } from '@/types/enums';
 
 const mockOverview = {
   occupancyRate: 92,
@@ -36,7 +38,16 @@ vi.mock('echarts-for-react/lib/core', () => ({
 }));
 
 describe('Dashboard Data Screen Mode', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // 财务相关 KPI 仅财务/管理员可见，注入登录态以渲染（如逾期账单 KPI）
+    useUserStore.setState({
+      user: {
+        id: 'u-admin', username: 'admin', realName: '管理员', roles: [RoleCode.PLATFORM_ADMIN],
+        companyId: 'comp-001', companyName: '示例物业', projectIds: [], userType: UserType.STAFF,
+      },
+    });
+  });
 
   async function renderDashboard() {
     const mod = await import('../dashboard/index');
@@ -64,17 +75,19 @@ describe('Dashboard Data Screen Mode', () => {
     });
   });
 
-  it('renders expiring contract item', async () => {
+  // 到期合同子模块后端无对应接口，已降级为空，展示空态文案。
+  it('renders expiring contracts empty state (degraded module)', async () => {
     await renderDashboard();
     await waitFor(() => {
-      expect(screen.getByText('CT-001')).toBeInTheDocument();
+      expect(screen.getByText('暂无即将到期合同')).toBeInTheDocument();
     });
+    expect(screen.queryByText('CT-001')).not.toBeInTheDocument();
   });
 
-  it('renders contract renter name', async () => {
+  it('renders non-financial pending repairs KPI', async () => {
     await renderDashboard();
     await waitFor(() => {
-      expect(screen.getByText(/张三/)).toBeInTheDocument();
+      expect(screen.getByText('5')).toBeInTheDocument();
     });
   });
 

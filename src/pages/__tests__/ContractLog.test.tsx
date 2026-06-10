@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from './test-utils';
 import { contractService } from '@/services/contract.service';
 
@@ -43,33 +43,29 @@ describe('ContractDetailPage operation log', () => {
     vi.mocked(contractService.detail).mockResolvedValue(contract as never);
   });
 
-  it('renders the operation log tab label', async () => {
+  // 注：操作日志/审批记录 Tab 已随真实后端对齐移除（后端无 audit resource-history 接口，
+  // 合同详情也不再返回 approvalRecords）。以下用例改为校验当前合同详情的真实行为。
+  it('renders the contract number in the detail header', async () => {
     await renderPage();
-    await waitFor(() => expect(screen.getByText('操作日志')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText('CT-2025001').length).toBeGreaterThanOrEqual(1));
   });
 
-  it('renders approval records in the operation log tab', async () => {
+  it('renders the current contract detail tabs', async () => {
     await renderPage();
-    await waitFor(() => expect(screen.getByText('操作日志')).toBeInTheDocument());
-    fireEvent.click(screen.getByText('操作日志'));
-    expect((await screen.findAllByText('创建合同')).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('财务通过').length).toBeGreaterThanOrEqual(1);
+    await waitFor(() => expect(screen.getByText('合同条款')).toBeInTheDocument());
+    expect(screen.getByText('关联账单')).toBeInTheDocument();
+    expect(screen.getByText('关联工单')).toBeInTheDocument();
   });
 
-  it('renders the operator names in the log', async () => {
+  it('no longer renders the removed operation-log tab', async () => {
     await renderPage();
-    await waitFor(() => expect(screen.getByText('操作日志')).toBeInTheDocument());
-    fireEvent.click(screen.getByText('操作日志'));
-    expect((await screen.findAllByText('创建合同')).length).toBeGreaterThanOrEqual(1);
-    // 操作人“王五”在侧栏时间线与日志表都会出现
-    expect(screen.getAllByText('王五').length).toBeGreaterThanOrEqual(1);
+    await waitFor(() => expect(screen.getByText('合同条款')).toBeInTheDocument());
+    expect(screen.queryByText('操作日志')).not.toBeInTheDocument();
   });
 
-  it('no longer shows the operation log placeholder text', async () => {
+  it('no longer shows the Sprint placeholder text', async () => {
     await renderPage();
-    await waitFor(() => expect(screen.getByText('操作日志')).toBeInTheDocument());
-    fireEvent.click(screen.getByText('操作日志'));
-    await screen.findAllByText('创建合同');
+    await waitFor(() => expect(screen.getByText('合同条款')).toBeInTheDocument());
     expect(screen.queryByText(/待后续 Sprint 实现/)).not.toBeInTheDocument();
   });
 });

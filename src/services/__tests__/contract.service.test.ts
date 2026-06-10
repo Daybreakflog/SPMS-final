@@ -38,8 +38,8 @@ describe('contractService', () => {
     expect(m.delete).toHaveBeenCalledWith('/contracts/ct-001');
   });
 
-  it('submit 调用 POST /contracts/:id/submit', async () => {
+  it('submit 调用 POST /contracts/:id/submit（带空 body，对应后端 ContractActionDto）', async () => {
     await contractService.submit('ct-001');
-    expect(m.post).toHaveBeenCalledWith('/contracts/ct-001/submit');
+    expect(m.post).toHaveBeenCalledWith('/contracts/ct-001/submit', {});
   });
 });

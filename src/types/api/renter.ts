@@ -7,11 +7,13 @@ export interface RenterListParams extends PageParams {
 }
 
 // 对应后端 CreateRenterProfileDto
+// ⚠ 后端 DTO 含 email，但 **不含** idFrontUrl / idBackUrl —— 证件影像字段后端不接收（会被静默丢弃）。
 export interface RenterCreateDTO {
   companyId: string;
   name: string;
   type?: 'PERSON' | 'COMPANY';
   phone?: string;
+  email?: string;
   idNumber?: string;
   idFrontUrl?: string;
   idBackUrl?: string;

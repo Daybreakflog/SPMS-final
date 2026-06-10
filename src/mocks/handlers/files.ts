@@ -33,4 +33,12 @@ export const fileHandlers = [
     }
     return HttpResponse.json(results);
   }),
+
+  // GET /api/files/:name — 文件下载/预览
+  http.get('/api/files/:name', ({ params }) => {
+    const name = params.name as string;
+    return new Response(`mock-file-content:${name}`, {
+      headers: { 'Content-Type': 'application/octet-stream', 'Content-Disposition': `inline; filename="${name}"` },
+    });
+  }),
 ];

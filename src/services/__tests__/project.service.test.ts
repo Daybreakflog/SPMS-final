@@ -42,9 +42,10 @@ describe('projectService', () => {
     expect(m.delete).toHaveBeenCalledWith('/projects/p-001');
   });
 
-  it('getUsers 调用 GET /projects/:id/users', async () => {
-    await projectService.getUsers('p-001');
-    expect(m.get).toHaveBeenCalledWith('/projects/p-001/users');
+  it('getUsers 返回空数组桩（后端无 GET /projects/:id/users 接口）', async () => {
+    const result = await projectService.getUsers('p-001');
+    expect(result).toEqual([]);
+    expect(m.get).not.toHaveBeenCalledWith('/projects/p-001/users');
   });
 
   it('assignUsers 调用 PUT /projects/:id/users', async () => {

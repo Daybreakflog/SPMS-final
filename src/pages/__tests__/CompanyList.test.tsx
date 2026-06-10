@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from './test-utils';
+import { useUserStore } from '@/store/user.store';
+import { RoleCode, UserType } from '@/types/enums';
 
 const mockCompanies = {
   items: [
@@ -48,6 +50,13 @@ vi.mock('@/services/company.service', () => ({
 describe('CompanyListPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 注入平台管理员登录态，使 PermissionGuard 放行编辑/新建按钮
+    useUserStore.setState({
+      user: {
+        id: 'u-admin', username: 'admin', realName: '管理员', roles: [RoleCode.PLATFORM_ADMIN],
+        companyId: 'comp-001', companyName: '翡翠湾物业', projectIds: [], userType: UserType.STAFF,
+      },
+    });
   });
 
   async function renderPage() {

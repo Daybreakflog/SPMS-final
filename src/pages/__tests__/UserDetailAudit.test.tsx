@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { renderWithProviders } from './test-utils';
 
-vi.mock('@/services/user.service', () => ({
-  userService: { detail: vi.fn() },
-}));
+vi.mock('@/services/user.service', async () => {
+  const actual = await vi.importActual<typeof import('@/services/user.service')>('@/services/user.service');
+  return { ...actual, userService: { detail: vi.fn() } };
+});
 vi.mock('@/services/audit.service', () => ({
   auditService: { resourceHistory: vi.fn() },
 }));
@@ -23,8 +24,10 @@ import UserDetailPage from '../org/users/detail';
 
 const user = {
   id: 'user-002', username: 'lisi', realName: '李四', phone: '13800138001', email: 'lisi@test.com',
-  companyId: 'company-001', companyName: '测试公司', userType: 'STAFF',
-  status: 'ACTIVE', roles: ['COMPANY_ADMIN'], projectIds: [],
+  companyId: 'company-001', company: { id: 'company-001', name: '测试公司' }, userType: 'STAFF',
+  status: 1,
+  roles: [{ roleId: 'r-ca', role: { id: 'r-ca', name: 'COMPANY_ADMIN', label: '公司管理员' } }],
+  projects: [],
   createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-02T00:00:00Z',
 };
 

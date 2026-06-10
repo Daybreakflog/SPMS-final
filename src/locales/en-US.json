@@ -427,6 +427,8 @@
     "noPaymentRecords": "No payment records",
     "orderNo": "Order No.",
     "orderNoPlaceholder": "Order No. / Tenant",
+    "renterAccount": "Tenant Account",
+    "renterAccountPlaceholder": "Order No. / Tenant",
     "paymentAmount": "Payment Amount",
     "paymentChannel": "Payment Channel",
     "paidAt": "Paid At",
@@ -931,9 +933,9 @@
       "low": "Low"
     },
     "complaintTarget": {
+      "project": "Project",
       "staff": "Staff",
-      "service": "Service",
-      "facility": "Facility"
+      "event": "Event"
     },
     "appeal": {
       "pending": "Pending",

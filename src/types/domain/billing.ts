@@ -8,7 +8,8 @@ export interface FeeItem {
   cycle: 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | 'ONE_TIME';
   projectId?: string;
   projectName?: string;
-  status: 'ACTIVE' | 'DISABLED';
+  // 后端 status 为数字：1 启用 / 0 禁用
+  status: number;
   remark?: string;
   createdAt?: string;
   updatedAt?: string;

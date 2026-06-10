@@ -159,14 +159,18 @@ export const projectHandlers = [
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page')) || 1;
     const pageSize = Number(url.searchParams.get('pageSize')) || 10;
-    const name = url.searchParams.get('name');
+    const keyword = url.searchParams.get('keyword') ?? url.searchParams.get('name');
     const companyId = url.searchParams.get('companyId');
     const status = url.searchParams.get('status');
 
     let filtered = [...projects];
-    if (name) filtered = filtered.filter((p) => p.name.includes(name));
+    if (keyword) filtered = filtered.filter((p) => p.name.includes(keyword));
     if (companyId) filtered = filtered.filter((p) => p.companyId === companyId);
-    if (status) filtered = filtered.filter((p) => p.status === status);
+    // 真实后端 status 用数字 1/0；mock 数据用字符串 'ACTIVE'/'DISABLED'，做一次映射
+    if (status != null && status !== '') {
+      const wantActive = status === '1' || status === 'ACTIVE';
+      filtered = filtered.filter((p) => (p.status === 'ACTIVE') === wantActive);
+    }
 
     const total = filtered.length;
     const items = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -224,6 +228,11 @@ export const projectHandlers = [
   }),
 
   http.put('/api/projects/:id/users', async () => {
+    return HttpResponse.json(null, { status: 200 });
+  }),
+
+  // PUT /api/projects/assign-user-projects — 批量分配用户项目（覆盖式）
+  http.put('/api/projects/assign-user-projects', async () => {
     return HttpResponse.json(null, { status: 200 });
   }),
 ];

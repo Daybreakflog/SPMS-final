@@ -141,6 +141,26 @@ function findUnitGlobal(unitId: string): MockUnit | undefined {
 }
 
 export const propertyHandlers = [
+  // GET /api/properties/my-units — 租户端：我的房源
+  http.get('/api/properties/my-units', () => {
+    return HttpResponse.json([
+      {
+        id: 'unit-floor-building-project-101-1-1-1',
+        name: '101',
+        buildingName: '1号楼',
+        floorNo: 1,
+        projectId: 'project-101',
+        projectName: '星辰·天鹅湖花园',
+        houseType: '两室一厅',
+        area: 85,
+        innerArea: 72,
+        direction: '南',
+        monthlyRent: 4500,
+        bindStatus: 'BOUND',
+      },
+    ]);
+  }),
+
   http.get('/api/properties/projects/:projectId/tree', ({ params }) => {
     const projectId = params.projectId as string;
     const buildingList = initProjectBuildings(projectId);

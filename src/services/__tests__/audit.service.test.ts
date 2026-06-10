@@ -25,13 +25,14 @@ describe('auditService', () => {
     expect(mockGet).toHaveBeenCalledWith('/system/audit-logs', expect.objectContaining({ module: 'USER' }));
   });
 
-  it('resourceHistory 调用 GET /system/audit-logs/resource-history', async () => {
-    await auditService.resourceHistory('user-001');
-    expect(mockGet).toHaveBeenCalledWith('/system/audit-logs/resource-history', { resourceId: 'user-001' });
+  it('resourceHistory 返回空数组桩（后端无 resource-history 接口）', async () => {
+    const result = await auditService.resourceHistory('user-001');
+    expect(result).toEqual([]);
+    expect(mockGet).not.toHaveBeenCalledWith('/system/audit-logs/resource-history', expect.anything());
   });
 
-  it('resourceHistory 传递正确的 resourceId', async () => {
+  it('resourceHistory 不触发 http 请求', async () => {
     await auditService.resourceHistory('contract-999');
-    expect(mockGet).toHaveBeenCalledWith('/system/audit-logs/resource-history', { resourceId: 'contract-999' });
+    expect(mockGet).not.toHaveBeenCalled();
   });
 });

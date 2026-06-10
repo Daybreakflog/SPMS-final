@@ -10,12 +10,12 @@ const mockUsers = {
       realName: '张伟',
       phone: '13800138000',
       email: 'zhangwei@example.com',
-      department: '客服部',
-      roles: ['CUSTOMER_SERVICE'],
-      projectIds: ['proj-001'],
+      roles: [{ roleId: 'r-cs', role: { id: 'r-cs', name: 'CUSTOMER_SERVICE', label: '客服人员' } }],
+      projects: [{ projectId: 'proj-001', project: { id: 'proj-001', name: '翡翠湾一期' } }],
       companyId: 'comp-001',
-      companyName: '翡翠湾物业',
-      status: 'ACTIVE',
+      company: { id: 'comp-001', name: '翡翠湾物业' },
+      userType: 'STAFF',
+      status: 1,
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
     },
@@ -25,12 +25,15 @@ const mockUsers = {
       realName: '李芳',
       phone: '13900139000',
       email: 'lifang@example.com',
-      department: '工程部',
-      roles: ['ENGINEER'],
-      projectIds: ['proj-001', 'proj-002'],
+      roles: [{ roleId: 'r-eng', role: { id: 'r-eng', name: 'ENGINEER', label: '工程人员' } }],
+      projects: [
+        { projectId: 'proj-001', project: { id: 'proj-001', name: '翡翠湾一期' } },
+        { projectId: 'proj-002', project: { id: 'proj-002', name: '翡翠湾二期' } },
+      ],
       companyId: 'comp-001',
-      companyName: '翡翠湾物业',
-      status: 'ACTIVE',
+      company: { id: 'comp-001', name: '翡翠湾物业' },
+      userType: 'STAFF',
+      status: 1,
       createdAt: '2026-02-01T00:00:00Z',
       updatedAt: '2026-02-01T00:00:00Z',
     },
@@ -40,13 +43,18 @@ const mockUsers = {
   pageSize: 10,
 };
 
-vi.mock('@/services/user.service', () => ({
-  userService: {
-    list: vi.fn().mockResolvedValue(mockUsers),
-    remove: vi.fn().mockResolvedValue({}),
-    changePassword: vi.fn().mockResolvedValue({}),
-  },
-}));
+// 仅 mock service 方法，保留真实 normalizeRoles / normalizeUser（页面会用到）
+vi.mock('@/services/user.service', async () => {
+  const actual = await vi.importActual<typeof import('@/services/user.service')>('@/services/user.service');
+  return {
+    ...actual,
+    userService: {
+      list: vi.fn().mockResolvedValue(mockUsers),
+      remove: vi.fn().mockResolvedValue({}),
+      changePassword: vi.fn().mockResolvedValue({}),
+    },
+  };
+});
 
 vi.mock('@/services/project.service', () => ({
   projectService: {

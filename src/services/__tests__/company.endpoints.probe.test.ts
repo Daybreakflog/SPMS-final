@@ -55,7 +55,8 @@ describe('platform/companies endpoint probe (MSW)', () => {
     expect(status).toBe(201);
     expect(body.id).toMatch(/^company-/);
     expect(body.name).toBe('探针测试物业');
-    expect(body.status).toBe('ACTIVE');
+    // 后端 status 为数字：1 启用 / 0 禁用
+    expect(body.status).toBe(1);
     createdId = body.id;
   });
 
@@ -72,13 +73,13 @@ describe('platform/companies endpoint probe (MSW)', () => {
     const r = await fetch(`${BASE}/api/platform/companies/${createdId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: '探针测试物业(已更名)', status: 'DISABLED' }),
+      body: JSON.stringify({ name: '探针测试物业(已更名)', status: 0 }),
     });
     const { status, body } = await json(r);
     console.log('[UPDATE]', status, body);
     expect(status).toBe(200);
     expect(body.name).toBe('探针测试物业(已更名)');
-    expect(body.status).toBe('DISABLED');
+    expect(body.status).toBe(0);
   });
 
   it('DELETE /api/platform/companies/:id — 删除', async () => {

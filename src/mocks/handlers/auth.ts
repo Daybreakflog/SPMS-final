@@ -198,6 +198,30 @@ const TEST_ACCOUNTS: Record<string, { password: string; user: object }> = {
   },
 };
 
+// 测试租户账号（密码：Tenant@2024）
+const TEST_TENANT_ACCOUNTS: Record<string, { password: string; user: object }> = {
+  tenant_zhangwei: {
+    password: 'Tenant@2024',
+    user: { id: 'account-tc-01', username: 'tenant_zhangwei', renterId: 'renter-tc-01', renterName: '张伟', phone: '13901000101', userType: 'TENANT' },
+  },
+  tenant_lina: {
+    password: 'Tenant@2024',
+    user: { id: 'account-tc-02', username: 'tenant_lina', renterId: 'renter-tc-02', renterName: '李娜', phone: '13901000102', userType: 'TENANT' },
+  },
+  tenant_chenjing: {
+    password: 'Tenant@2024',
+    user: { id: 'account-tc-03', username: 'tenant_chenjing', renterId: 'renter-tc-05', renterName: '陈静', phone: '13901000105', userType: 'TENANT' },
+  },
+  tenant_boyuan: {
+    password: 'Tenant@2024',
+    user: { id: 'account-tc-04', username: 'tenant_boyuan', renterId: 'renter-tc-06', renterName: '博远科技有限公司', phone: '13901000106', userType: 'TENANT' },
+  },
+  tenant_zhouxin: {
+    password: 'Tenant@2024',
+    user: { id: 'account-tc-05', username: 'tenant_zhouxin', renterId: 'renter-tc-09', renterName: '周鑫', phone: '13901000109', userType: 'TENANT' },
+  },
+};
+
 export const authHandlers = [
   http.post('/api/auth/staff/login', async ({ request }) => {
     const body = await request.json() as { username: string; password: string };
@@ -223,6 +247,64 @@ export const authHandlers = [
       refreshToken: `mock-refresh-token-${tokenSuffix}`,
       user: account.user,
     });
+  }),
+
+  http.post('/api/auth/tenant/login', async ({ request }) => {
+    const body = await request.json() as { username: string; password: string };
+    const account = TEST_TENANT_ACCOUNTS[body.username];
+
+    if (!account || account.password !== body.password) {
+      return HttpResponse.json(
+        { code: 401, message: '用户名或密码错误', data: null },
+        { status: 401 },
+      );
+    }
+
+    const tokenSuffix = body.username.replace(/_/g, '-');
+    return HttpResponse.json({
+      accessToken:  `mock-access-token-${tokenSuffix}`,
+      refreshToken: `mock-refresh-token-${tokenSuffix}`,
+      user: account.user,
+    });
+  }),
+
+  http.post('/api/auth/tenant/register', async ({ request }) => {
+    const body = await request.json() as { username: string; password: string; phone?: string; renterProfileId?: string };
+    const tokenSuffix = body.username.replace(/_/g, '-');
+    return HttpResponse.json({
+      accessToken:  `mock-access-token-${tokenSuffix}`,
+      refreshToken: `mock-refresh-token-${tokenSuffix}`,
+      user: {
+        id: `account-new-${Date.now()}`,
+        username: body.username,
+        renterId: body.renterProfileId ?? null,
+        renterName: null,
+        phone: body.phone ?? null,
+        userType: 'TENANT',
+      },
+    }, { status: 201 });
+  }),
+
+  http.post('/api/auth/wx-login', async ({ request }) => {
+    const body = await request.json() as { code: string; clientType?: string };
+    const tokenSuffix = `wx-${body.code.slice(0, 8)}`;
+    return HttpResponse.json({
+      accessToken:  `mock-access-token-${tokenSuffix}`,
+      refreshToken: `mock-refresh-token-${tokenSuffix}`,
+      user: {
+        id: 'account-wx-001',
+        username: 'wx_user',
+        renterId: null,
+        renterName: null,
+        openid: body.code,
+        userType: 'TENANT',
+      },
+    });
+  }),
+
+  http.post('/api/auth/tenant/bind-renter', async ({ request }) => {
+    await request.json();
+    return HttpResponse.json({ success: true });
   }),
 
   http.post('/api/auth/refresh', () => {

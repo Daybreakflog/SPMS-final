@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from './test-utils';
+import { useUserStore } from '@/store/user.store';
+import { RoleCode, UserType } from '@/types/enums';
 
 const mockComplaints = {
   items: [
@@ -31,7 +33,7 @@ const mockComplaints = {
       complainantId: 'renter-002',
       complainantName: '李芳',
       complainantPhone: '13900139000',
-      targetType: 'FACILITY',
+      targetType: 'EVENT',
       targetName: '1号楼电梯',
       severity: 'HIGH',
       status: 'ANALYZING',
@@ -57,6 +59,13 @@ vi.mock('@/services/complaint.service', () => ({
 describe('ComplaintListPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 注入登录态，使页面顶层 PermissionGuard 放行（否则整页显示"暂无权限"）
+    useUserStore.setState({
+      user: {
+        id: 'u-admin', username: 'admin', realName: '管理员', roles: [RoleCode.PLATFORM_ADMIN],
+        companyId: 'comp-001', companyName: '示例物业', projectIds: [], userType: UserType.STAFF,
+      },
+    });
   });
 
   async function renderPage() {

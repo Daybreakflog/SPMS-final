@@ -167,9 +167,9 @@ export const UrgencyColors: Record<Urgency, string> = {
 };
 
 export const ComplaintTargetTypeLabelKeys: Record<ComplaintTargetType, string> = {
+  [ComplaintTargetType.PROJECT]: 'status.complaintTarget.project',
   [ComplaintTargetType.STAFF]: 'status.complaintTarget.staff',
-  [ComplaintTargetType.SERVICE]: 'status.complaintTarget.service',
-  [ComplaintTargetType.FACILITY]: 'status.complaintTarget.facility',
+  [ComplaintTargetType.EVENT]: 'status.complaintTarget.event',
 };
 
 export const AppealStatusMeta: Record<AppealStatus, StatusMeta> = {

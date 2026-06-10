@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { renderWithProviders } from './test-utils';
 
-vi.mock('@/services/user.service', () => ({
-  userService: { detail: vi.fn() },
-}));
+vi.mock('@/services/user.service', async () => {
+  const actual = await vi.importActual<typeof import('@/services/user.service')>('@/services/user.service');
+  return { ...actual, userService: { detail: vi.fn() } };
+});
 
 vi.mock('@/services/audit.service', () => ({
   auditService: { resourceHistory: vi.fn() },
@@ -24,10 +25,13 @@ import { userService } from '@/services/user.service';
 import { auditService } from '@/services/audit.service';
 import UserDetailPage from '../org/users/detail';
 
+// 真实后端 /users/:id 形态：嵌套 roles/projects、无扁平 companyName、status 为数字
 const mockUser = {
   id: 'user-001', username: 'admin', realName: '张三', phone: '13800138000', email: 'admin@test.com',
-  companyId: 'company-001', companyName: '测试公司', userType: 'STAFF',
-  status: 'ACTIVE', roles: ['PLATFORM_ADMIN'], projectIds: ['p-001'],
+  companyId: 'company-001', company: { id: 'company-001', name: '测试公司' }, userType: 'STAFF',
+  status: 1,
+  roles: [{ roleId: 'r-pa', role: { id: 'r-pa', name: 'PLATFORM_ADMIN', label: '平台管理员' } }],
+  projects: [{ projectId: 'p-001', project: { id: 'p-001', name: '示例项目' } }],
   createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-02T00:00:00Z',
 };
 

@@ -122,14 +122,14 @@ function RenterServices({ renterId, onViewRepair }: { renterId: string; onViewRe
             pagination={false}
             columns={[
               {
-                title: t('service.repairNo'), dataIndex: 'repairNo',
+                title: t('service.repairNo'), dataIndex: 'orderNo',
                 render: (v: string, r: RepairOrder) => (
                   <Button type="link" size="small" className="p-0" onClick={() => onViewRepair(r.id)}>{v}</Button>
                 ),
               },
               { title: t('service.title'), dataIndex: 'title' },
               { title: t('common.status'), dataIndex: 'status', render: (v: string) => <StatusTag status={v as RepairStatus} statusMap={RepairStatusMeta} /> },
-              { title: t('service.submittedAt'), dataIndex: 'submittedAt', render: (v: string) => formatDateTime(v) },
+              { title: t('service.submittedAt'), dataIndex: 'createdAt', render: (v: string) => formatDateTime(v) },
             ]}
             onRow={(record) => ({ onClick: () => onViewRepair(record.id), className: 'cursor-pointer' })}
           />
@@ -232,7 +232,7 @@ export default function RenterDetailModal({ open, id, onClose }: Props) {
       title: '状态',
       dataIndex: 'status',
       width: 100,
-      render: (v: string) => <Tag color={v === 'ACTIVE' ? 'green' : 'default'}>{v === 'ACTIVE' ? '已启用' : '已禁用'}</Tag>,
+      render: (v: number) => <Tag color={v === 1 ? 'green' : 'default'}>{v === 1 ? '已启用' : '已禁用'}</Tag>,
     },
     {
       title: '最近登录',
