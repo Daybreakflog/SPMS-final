@@ -43,10 +43,9 @@ export default function LeaseListPage() {
   };
 
   const columns: TableColumnsType<Lease> = [
-    { title: t('lease.renter'), dataIndex: 'renterName', width: 100 },
-    { title: t('lease.unit'), dataIndex: 'unitNumber', width: 100 },
-    { title: t('lease.building'), dataIndex: 'buildingName', width: 100 },
-    { title: t('lease.project'), dataIndex: 'projectName', width: 120 },
+    { title: t('lease.renter'), key: 'renter', width: 100, render: (_, r) => r.renterProfile?.name ?? '-' },
+    { title: t('lease.unit'), key: 'unit', width: 100, render: (_, r) => r.unit?.code ?? r.unit?.name ?? '-' },
+    { title: t('lease.project'), key: 'project', width: 120, render: (_, r) => r.project?.name ?? '-' },
     {
       title: t('lease.checkInDate'),
       dataIndex: 'checkInDate',

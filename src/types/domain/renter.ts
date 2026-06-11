@@ -9,8 +9,6 @@ export interface Renter {
   phone?: string;
   email?: string | null;
   idNumber?: string;
-  idFrontUrl?: string;
-  idBackUrl?: string;
   creditCode?: string | null;
   contactName?: string;
   remark?: string | null;

@@ -13,8 +13,8 @@ export interface Project {
   areaUnit?: string;
   billingStartDate?: string;
   remark?: string;
-  // 真实后端 status 为数字（1 启用 / 0 禁用）；MSW mock 用字符串 'ACTIVE'/'DISABLED'。
-  status: 'ACTIVE' | 'DISABLED' | number;
+  // 后端 status 为数字：1 启用 / 0 禁用
+  status: number;
   // ⚠ 真实后端 GET /projects 当前**不返回**以下聚合字段，需后端补充统计后才有值。
   buildingCount?: number;
   unitCount?: number;
@@ -23,9 +23,8 @@ export interface Project {
   updatedAt: string;
 }
 
-/** 项目是否启用——兼容数字(1)与字符串('ACTIVE')两种后端返回。 */
-export function isProjectActive(status: Project['status']): boolean {
-  return status === 1 || status === 'ACTIVE';
+export function isProjectActive(status: number): boolean {
+  return status === 1;
 }
 
 export interface ProjectUser {

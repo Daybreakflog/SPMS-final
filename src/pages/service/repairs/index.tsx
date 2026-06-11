@@ -10,8 +10,8 @@ import StatusTag from '@/components/StatusTag';
 import PermissionGuard from '@/components/PermissionGuard';
 import { useTableQuery } from '@/hooks/useTableQuery';
 import { repairService } from '@/services/repair.service';
-import { RepairStatusMeta, RepairStatusTabKeys, RepairTypeLabelKeys, UrgencyLabelKeys, UrgencyColors } from '@/constants/status';
-import { RepairStatus, RepairType, Urgency, RoleCode } from '@/types/enums';
+import { RepairStatusMeta, RepairStatusTabKeys, RepairTypeLabelKeys } from '@/constants/status';
+import { RepairStatus, RepairType, RoleCode } from '@/types/enums';
 import type { RepairOrder, RepairListParams } from '@/types';
 import { formatDateTime } from '@/utils/format';
 import { getMessageApi } from '@/utils/antd';
@@ -77,21 +77,14 @@ export default function RepairListPage() {
   };
 
   const columns: TableColumnsType<RepairOrder> = [
-    { title: t('service.repairNo'), dataIndex: 'repairNo', width: 160 },
-    { title: t('service.title'), dataIndex: 'title', width: 150, ellipsis: true },
-    { title: t('service.renter'), dataIndex: 'renterName', width: 80 },
-    { title: t('service.unit'), dataIndex: 'unitNumber', width: 70 },
+    { title: t('service.repairNo'), dataIndex: 'orderNo', width: 160 },
+    { title: t('service.title'), dataIndex: 'description', width: 150, ellipsis: true },
+    { title: t('service.renter'), key: 'renter', width: 80, render: (_, r) => r.renterProfile?.name ?? '-' },
     {
       title: t('service.repairType'),
-      dataIndex: 'repairType',
+      dataIndex: 'category',
       width: 80,
       render: (v: string) => <Tag>{RepairTypeLabelKeys[v as RepairType] ? t(RepairTypeLabelKeys[v as RepairType]) : v}</Tag>,
-    },
-    {
-      title: t('service.urgency'),
-      dataIndex: 'urgency',
-      width: 80,
-      render: (v: string) => <Tag color={UrgencyColors[v as Urgency]}>{UrgencyLabelKeys[v as Urgency] ? t(UrgencyLabelKeys[v as Urgency]) : v}</Tag>,
     },
     {
       title: t('common.status'),
@@ -101,27 +94,21 @@ export default function RepairListPage() {
     },
     {
       title: t('service.engineer'),
-      dataIndex: 'engineerName',
+      key: 'engineer',
       width: 100,
-      render: (v: string) => v || '-',
+      render: (_, r) => r.assignments?.[0]?.assignee?.realName ?? '-',
     },
     {
       title: t('service.submittedAt'),
-      dataIndex: 'submittedAt',
+      dataIndex: 'createdAt',
       width: 160,
       render: (v: string) => formatDateTime(v),
     },
     {
-      title: t('service.completedAt'),
-      dataIndex: 'completedAt',
-      width: 160,
-      render: (v: string) => v ? formatDateTime(v) : '-',
-    },
-    {
       title: t('service.rating'),
-      dataIndex: 'rating',
-      width: 70,
-      render: (v: number) => v ? `${v}分` : '-',
+      key: 'rating',
+      width: 90,
+      render: (_, r) => r.rating ? `速度${r.rating.speedScore}/质量${r.rating.qualityScore}` : '-',
     },
     {
       title: t('common.operation'),

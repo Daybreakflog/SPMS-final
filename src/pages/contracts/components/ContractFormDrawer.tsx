@@ -6,9 +6,12 @@ import { useTranslation } from 'react-i18next';
 import FormDrawer from '@/components/FormDrawer';
 import { contractService } from '@/services/contract.service';
 import { renterService } from '@/services/renter.service';
+import { projectService } from '@/services/project.service';
+import { propertyService } from '@/services/property.service';
 import { PaymentCycle } from '@/types/enums';
 import { PaymentCycleLabelKeys } from '@/constants/status';
 import type { Contract } from '@/types';
+import type { PropertyTreeNode } from '@/types/domain/property';
 import { getMessageApi } from '@/utils/antd';
 import { contractSchema } from '@/schemas/contract.schema';
 import { zodFieldRule } from '@/utils/zodValidator';
@@ -22,6 +25,23 @@ interface ContractFormDrawerProps {
   contract: Contract | null;
   onClose: () => void;
   onSuccess: () => void;
+}
+
+function flattenUnits(tree: PropertyTreeNode[]): { label: string; value: string; status: string }[] {
+  const result: { label: string; value: string; status: string }[] = [];
+  for (const building of tree) {
+    for (const floor of building.children ?? []) {
+      for (const unit of floor.children ?? []) {
+        const u = unit.data as { status?: string };
+        result.push({
+          label: `${building.title} - ${floor.title} - ${unit.title}`,
+          value: unit.id,
+          status: u.status ?? 'VACANT',
+        });
+      }
+    }
+  }
+  return result;
 }
 
 export default function ContractFormDrawer({ open, contract, onClose, onSuccess }: ContractFormDrawerProps) {
@@ -44,12 +64,44 @@ export default function ContractFormDrawer({ open, contract, onClose, onSuccess 
     gcTime: GC_TIME.STATIC,
   });
 
+  const { data: projectsData, isLoading: projectLoading } = useQuery({
+    queryKey: ['contract-form-projects'],
+    queryFn: () => projectService.list({ page: 1, pageSize: 100 }),
+    enabled: open,
+    staleTime: STALE_TIME.STATIC,
+    gcTime: GC_TIME.STATIC,
+  });
+  const projects = projectsData?.items ?? [];
+
+  const selectedProjectId = Form.useWatch('projectId', form);
+
+  const { data: propertyTree = [], isLoading: treeLoading } = useQuery({
+    queryKey: ['contract-form-units', selectedProjectId],
+    queryFn: () => propertyService.getTree(selectedProjectId),
+    enabled: !!selectedProjectId,
+    staleTime: STALE_TIME.STATIC,
+  });
+
+  const unitOptions = useMemo(() => {
+    const units = flattenUnits(propertyTree);
+    return units.filter(
+      (u) => u.status === 'VACANT' || (isEdit && u.value === contract?.unitId),
+    );
+  }, [propertyTree, isEdit, contract?.unitId]);
+
   const initialValues = useMemo(() => {
-    if (!contract) return { paymentCycle: PaymentCycle.MONTHLY };
+    if (!contract) return { paymentMethod: PaymentCycle.MONTHLY };
     return {
-      ...contract,
+      renterProfileId: contract.renterProfileId,
+      projectId: contract.projectId,
+      unitId: contract.unitId,
+      contractNo: contract.contractNo,
       startDate: contract.startDate ? dayjs(contract.startDate) : undefined,
       endDate: contract.endDate ? dayjs(contract.endDate) : undefined,
+      rentAmount: Number(contract.rentAmount),
+      depositAmount: Number(contract.depositAmount),
+      paymentMethod: contract.paymentMethod,
+      terms: contract.terms ?? undefined,
     };
   }, [contract]);
 
@@ -58,21 +110,9 @@ export default function ContractFormDrawer({ open, contract, onClose, onSuccess 
 
   const leasePeriod = useMemo(() => {
     if (!startDate || !endDate) return '';
-    const s = dayjs(startDate);
-    const e = dayjs(endDate);
-    const months = e.diff(s, 'month');
+    const months = dayjs(endDate).diff(dayjs(startDate), 'month');
     return `${months} ${t('contract.months')}`;
   }, [startDate, endDate, t]);
-
-  const handleRenterChange = (renterProfileId: string) => {
-    const renter = renters.find((r) => r.id === renterProfileId);
-    if (renter) {
-      form.setFieldsValue({
-        renterName: renter.name,
-        renterIdNumber: renter.idNumber,
-      });
-    }
-  };
 
   const handleSubmit = async (values: Record<string, unknown>) => {
     setSubmitting(true);
@@ -113,28 +153,42 @@ export default function ContractFormDrawer({ open, contract, onClose, onSuccess 
           placeholder="请选择租户"
           loading={renterLoading}
           optionFilterProp="label"
-          onChange={handleRenterChange}
           options={renters.map((r) => ({ label: `${r.name} (${r.phone})`, value: r.id }))}
         />
       </Form.Item>
-      <Form.Item name="renterName" hidden><Input /></Form.Item>
-      <Form.Item name="renterIdNumber" label={t('contract.renterIdNumber')}>
-        <Input disabled />
-      </Form.Item>
 
       <Divider titlePlacement="left">{t('contract.leaseTarget')}</Divider>
-      <Form.Item name="unitId" label={t('contract.unit')} rules={[{ required: true }]}>
-        <Input placeholder="单元 ID" />
+      <Form.Item name="projectId" label={t('contract.project')} rules={[{ required: true }]}>
+        <Select
+          showSearch
+          placeholder="请选择项目"
+          loading={projectLoading}
+          optionFilterProp="label"
+          disabled={isEdit}
+          onChange={() => form.setFieldValue('unitId', undefined)}
+          options={projects.map((p) => ({ label: p.name, value: p.id }))}
+        />
       </Form.Item>
-      <Form.Item name="unitNumber" label="单元号">
-        <Input placeholder="单元号" />
+      <Form.Item name="unitId" label={t('contract.unit')}>
+        <Select
+          showSearch
+          allowClear
+          placeholder={selectedProjectId ? '请选择房间' : '请先选择项目'}
+          loading={treeLoading}
+          optionFilterProp="label"
+          disabled={!selectedProjectId}
+          options={unitOptions.map((u) => ({
+            label: u.label,
+            value: u.value,
+            disabled: u.status === 'OCCUPIED' && u.value !== contract?.unitId,
+          }))}
+        />
       </Form.Item>
-      <Form.Item name="buildingName" label={t('contract.building')}>
-        <Input placeholder="楼栋名" />
-      </Form.Item>
-      <Form.Item name="projectId" label={t('contract.project')}>
-        <Input placeholder="项目 ID" />
-      </Form.Item>
+      {!isEdit && (
+        <Form.Item name="contractNo" label="合同编号" rules={[{ required: true, message: '请填写合同编号' }]}>
+          <Input placeholder="如：XC-TH-2026-001" />
+        </Form.Item>
+      )}
 
       <Divider titlePlacement="left">{t('contract.leaseTerms')}</Divider>
       <div className="grid grid-cols-2 gap-x-4">
@@ -167,22 +221,22 @@ export default function ContractFormDrawer({ open, contract, onClose, onSuccess 
         </div>
       )}
       <div className="grid grid-cols-2 gap-x-4">
-        <Form.Item name="monthlyRent" label={t('contract.monthlyRent')} rules={[{ required: true }, zodFieldRule(contractSchema.shape.monthlyRent)]}>
-          <InputNumber className="w-full" min={0} precision={2} prefix="¥" />
+        <Form.Item name="rentAmount" label={t('contract.monthlyRent')} rules={[{ required: true }, zodFieldRule(contractSchema.shape.rentAmount)]}>
+          <InputNumber className="w-full" min={0} precision={2} prefix="¥" controls={false} />
         </Form.Item>
-        <Form.Item name="deposit" label={t('contract.deposit')} rules={[{ required: true }, zodFieldRule(contractSchema.shape.deposit)]}>
-          <InputNumber className="w-full" min={0} precision={2} prefix="¥" />
+        <Form.Item name="depositAmount" label={t('contract.deposit')} rules={[{ required: true }, zodFieldRule(contractSchema.shape.depositAmount)]}>
+          <InputNumber className="w-full" min={0} precision={2} prefix="¥" controls={false} />
         </Form.Item>
       </div>
-      <Form.Item name="paymentCycle" label={t('contract.paymentCycle')} rules={[{ required: true }]}>
+      <Form.Item name="paymentMethod" label={t('contract.paymentCycle')} rules={[{ required: true }]}>
         <Select
           options={Object.entries(PaymentCycleLabelKeys).map(([value, key]) => ({ value, label: t(key) }))}
         />
       </Form.Item>
 
       <Divider titlePlacement="left">{t('contract.remark')}</Divider>
-      <Form.Item name="remark" label={t('contract.remark')}>
-        <TextArea rows={3} placeholder="备注信息" />
+      <Form.Item name="terms" label={t('contract.remark')}>
+        <TextArea rows={3} placeholder="合同条款备注" />
       </Form.Item>
     </FormDrawer>
   );

@@ -78,10 +78,10 @@ export default function RenewDrawer({ open, contract, onClose, onSuccess }: Rene
       </div>
       <div className="grid grid-cols-2 gap-x-4">
         <Form.Item name="monthlyRent" label={t('contract.monthlyRent')} rules={[{ required: true }]}>
-          <InputNumber className="w-full" min={0} precision={2} prefix="¥" />
+          <InputNumber className="w-full" min={0} precision={2} prefix="¥" controls={false} />
         </Form.Item>
         <Form.Item name="deposit" label={t('contract.deposit')} rules={[{ required: true }]}>
-          <InputNumber className="w-full" min={0} precision={2} prefix="¥" />
+          <InputNumber className="w-full" min={0} precision={2} prefix="¥" controls={false} />
         </Form.Item>
       </div>
       <Form.Item name="paymentCycle" label={t('contract.paymentCycle')} rules={[{ required: true }]}>

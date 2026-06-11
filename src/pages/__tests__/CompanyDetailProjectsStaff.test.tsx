@@ -23,7 +23,7 @@ import CompanyDetailPage from '../platform/companies/detail';
 
 const mockCompany = {
   id: 'company-002', name: '鑫海物业', code: 'XH002', contact: '王建华', phone: '13900139000',
-  email: 'xh@example.com', address: '北京市朝阳区', status: 'ACTIVE', projectCount: 3, staffCount: 8,
+  email: 'xh@example.com', address: '北京市朝阳区', status: 1, _count: { projects: 3, users: 8 },
   createdAt: '2024-02-01T00:00:00Z', updatedAt: '2024-02-01T00:00:00Z', remark: '',
 };
 

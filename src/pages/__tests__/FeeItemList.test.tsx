@@ -4,10 +4,10 @@ import { renderWithProviders } from './test-utils';
 
 const mockData = {
   items: [
-    { id: 'fi-1', name: '物业管理费', code: 'PMF', billingRule: 'FIXED', unitPrice: 3.5, unit: '元/m²/月', cycle: 'MONTHLY', status: 'ACTIVE', projectId: null, projectName: null, createdAt: '2026-01-01' },
-    { id: 'fi-2', name: '租金', code: 'RENT', billingRule: 'FIXED', unitPrice: 0, unit: '元/月', cycle: 'MONTHLY', status: 'ACTIVE', projectId: null, projectName: null, createdAt: '2026-01-01' },
-    { id: 'fi-3', name: '电费', code: 'ELEC', billingRule: 'METER', unitPrice: 0.8, unit: '元/度', cycle: 'MONTHLY', status: 'ACTIVE', projectId: 'p-1', projectName: '翡翠湾', createdAt: '2026-01-01' },
-    { id: 'fi-4', name: '水费', code: 'WATER', billingRule: 'METER', unitPrice: 5.0, unit: '元/吨', cycle: 'MONTHLY', status: 'DISABLED', projectId: null, projectName: null, createdAt: '2026-01-01' },
+    { id: 'fi-1', name: '物业管理费', code: 'PMF', billingRule: 'FIXED', unitPrice: 3.5, unit: '元/m²/月', cycle: 'MONTHLY', status: 1, projectId: null, projectName: null, createdAt: '2026-01-01' },
+    { id: 'fi-2', name: '租金', code: 'RENT', billingRule: 'FIXED', unitPrice: 0, unit: '元/月', cycle: 'MONTHLY', status: 1, projectId: null, projectName: null, createdAt: '2026-01-01' },
+    { id: 'fi-3', name: '电费', code: 'ELEC', billingRule: 'METER', unitPrice: 0.8, unit: '元/度', cycle: 'MONTHLY', status: 1, projectId: 'p-1', projectName: '翡翠湾', createdAt: '2026-01-01' },
+    { id: 'fi-4', name: '水费', code: 'WATER', billingRule: 'METER', unitPrice: 5.0, unit: '元/吨', cycle: 'MONTHLY', status: 0, projectId: null, projectName: null, createdAt: '2026-01-01' },
   ],
   total: 4,
 };

@@ -115,7 +115,7 @@ request.interceptors.response.use(
     const errorData = response.data;
     const errorMsg = errorData?.message ?? `请求失败（${status}）`;
 
-    if (status === 401 && config && !config.url?.includes('/auth/refresh')) {
+    if (status === 401 && config && !config.url?.includes('/auth/refresh') && !config.url?.includes('/auth/staff/login')) {
       if (!refreshing) {
         const rt = getRefreshToken();
         if (!rt) {

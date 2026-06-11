@@ -9,7 +9,6 @@ import { propertyService } from '@/services/property.service';
 import { projectService } from '@/services/project.service';
 import { renterService } from '@/services/renter.service';
 import { getMessageApi } from '@/utils/antd';
-import { formatMoney } from '@/utils/format';
 import { RoleCode } from '@/types/enums';
 import { STALE_TIME, GC_TIME } from '@/constants/queryConfig';
 import type { PropertyTreeNode, Building, Floor, Unit, Renter } from '@/types';
@@ -163,9 +162,6 @@ export default function PropertyTreePage() {
           </div>
           <Descriptions bordered column={1} size="small">
             <Descriptions.Item label="楼栋编号">{b.code ?? '-'}</Descriptions.Item>
-            <Descriptions.Item label="总楼层">{b.totalFloors ?? '-'}</Descriptions.Item>
-            <Descriptions.Item label="单元总数">{b.totalUnits ?? '-'}</Descriptions.Item>
-            <Descriptions.Item label="建成年份">{b.builtYear ?? '-'}</Descriptions.Item>
           </Descriptions>
         </div>
       );
@@ -189,20 +185,20 @@ export default function PropertyTreePage() {
           </div>
           <Descriptions bordered column={1} size="small">
             <Descriptions.Item label="层号">{f.floorNo}</Descriptions.Item>
-            <Descriptions.Item label="单元数">{f.unitCount ?? '-'}</Descriptions.Item>
           </Descriptions>
         </div>
       );
     }
 
     const u = nodeData as Unit;
+    const isBound = !!u.renterProfileId;
     return (
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h4 className="m-0">单元 {u.name}</h4>
           <PermissionGuard roles={[RoleCode.PLATFORM_ADMIN, RoleCode.COMPANY_ADMIN, RoleCode.PROJECT_ADMIN, RoleCode.CUSTOMER_SERVICE]}>
             <Space>
-              {u.bindStatus === 'UNBOUND' ? (
+              {!isBound ? (
                 <Button size="small" icon={<LinkOutlined />} type="primary" onClick={openBindDrawer}>绑定租户</Button>
               ) : (
                 <Popconfirm title="确定解绑租户?" onConfirm={handleUnbind}>
@@ -218,17 +214,15 @@ export default function PropertyTreePage() {
         </div>
         <Descriptions bordered column={1} size="small">
           <Descriptions.Item label="单元名称">{u.name}</Descriptions.Item>
-          <Descriptions.Item label="户型">{u.houseType ?? '-'}</Descriptions.Item>
+          <Descriptions.Item label="编号">{u.code ?? '-'}</Descriptions.Item>
+          <Descriptions.Item label="类型">{u.unitType}</Descriptions.Item>
           <Descriptions.Item label="建筑面积">{u.area ? `${u.area} ㎡` : '-'}</Descriptions.Item>
-          <Descriptions.Item label="套内面积">{u.innerArea ? `${u.innerArea} ㎡` : '-'}</Descriptions.Item>
-          <Descriptions.Item label="朝向">{u.direction ?? '-'}</Descriptions.Item>
-          <Descriptions.Item label="月租金">{formatMoney(u.monthlyRent)}</Descriptions.Item>
           <Descriptions.Item label="绑定状态">
-            <Tag color={u.bindStatus === 'BOUND' ? 'green' : 'default'}>
-              {u.bindStatus === 'BOUND' ? '已绑定' : '未绑定'}
+            <Tag color={isBound ? 'green' : 'default'}>
+              {isBound ? '已绑定' : '未绑定'}
             </Tag>
           </Descriptions.Item>
-          {u.renterName && <Descriptions.Item label="当前租户">{u.renterName}</Descriptions.Item>}
+          {u.renterProfile && <Descriptions.Item label="当前租户">{u.renterProfile.name}</Descriptions.Item>}
         </Descriptions>
       </div>
     );
@@ -295,12 +289,6 @@ export default function PropertyTreePage() {
               <Form.Item name="code" label="楼栋编号">
                 <Input placeholder="如：B01" />
               </Form.Item>
-              <Form.Item name="totalFloors" label="总楼层数">
-                <InputNumber min={1} style={{ width: '100%' }} placeholder="请输入总楼层数" />
-              </Form.Item>
-              <Form.Item name="builtYear" label="建成年份">
-                <InputNumber min={1900} max={2100} style={{ width: '100%' }} placeholder="如：2020" />
-              </Form.Item>
             </>
           )}
           {(formMode === 'createFloor' || formMode === 'editFloor') && (
@@ -313,30 +301,11 @@ export default function PropertyTreePage() {
               <Form.Item name="name" label="单元名称" rules={[{ required: true, message: '请输入单元名称' }]}>
                 <Input placeholder="如：101" />
               </Form.Item>
-              <Form.Item name="houseType" label="户型">
-                <Select placeholder="请选择户型" allowClear>
-                  <Select.Option value="一室一厅">一室一厅</Select.Option>
-                  <Select.Option value="两室一厅">两室一厅</Select.Option>
-                  <Select.Option value="两室两厅">两室两厅</Select.Option>
-                  <Select.Option value="三室一厅">三室一厅</Select.Option>
-                  <Select.Option value="三室两厅">三室两厅</Select.Option>
-                </Select>
+              <Form.Item name="code" label="单元编号">
+                <Input placeholder="如：B01-101" />
               </Form.Item>
-              <Form.Item name="area" label="建筑面积（㎡）" rules={[{ required: true, message: '请输入建筑面积' }]}>
+              <Form.Item name="area" label="建筑面积（㎡）">
                 <InputNumber min={0} style={{ width: '100%' }} placeholder="请输入建筑面积" />
-              </Form.Item>
-              <Form.Item name="innerArea" label="套内面积（㎡）">
-                <InputNumber min={0} style={{ width: '100%' }} placeholder="请输入套内面积" />
-              </Form.Item>
-              <Form.Item name="direction" label="朝向">
-                <Select placeholder="请选择朝向" allowClear>
-                  {['东', '南', '西', '北', '东南', '西南', '东北', '西北'].map((d) => (
-                    <Select.Option key={d} value={d}>{d}</Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-              <Form.Item name="monthlyRent" label="月租金（元）">
-                <InputNumber min={0} style={{ width: '100%' }} placeholder="请输入月租金" />
               </Form.Item>
             </>
           )}

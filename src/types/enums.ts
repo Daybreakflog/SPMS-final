@@ -36,6 +36,7 @@ export enum RepairStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   RATED = 'RATED',
+  CLOSED = 'CLOSED',
 }
 
 export enum ComplaintStatus {

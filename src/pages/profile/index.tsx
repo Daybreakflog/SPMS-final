@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Card, Descriptions, Tag, Space, Button, Form, Input } from 'antd';
-import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import { useUserStore } from '@/store/user.store';
@@ -8,15 +7,12 @@ import { userService } from '@/services/user.service';
 import { RoleLabels, RoleColors } from '@/constants/roles';
 import { RoleCode } from '@/types/enums';
 import { getMessageApi } from '@/utils/antd';
-import AppTour from '@/components/AppTour';
-import { useAppTour } from '@/components/AppTour/useAppTour';
 
 export default function ProfilePage() {
   const { t } = useTranslation();
   const user = useUserStore((s) => s.user);
   const [changingPassword, setChangingPassword] = useState(false);
   const [form] = Form.useForm();
-  const tour = useAppTour();
 
   if (!user) return null;
 
@@ -67,11 +63,7 @@ export default function ProfilePage() {
           </Descriptions>
         </Card>
 
-        <Card title={t('profile.changePassword')} extra={
-          <Button icon={<QuestionCircleOutlined />} size="small" onClick={tour.restart}>
-            {t('tour.restartTour')}
-          </Button>
-        }>
+        <Card title={t('profile.changePassword')}>
           <Form form={form} layout="vertical">
             <Form.Item name="oldPassword" label="原密码" rules={[{ required: true, message: '请输入原密码' }]}>
               <Input.Password placeholder="请输入原密码" />
@@ -90,7 +82,6 @@ export default function ProfilePage() {
           </Form>
         </Card>
       </div>
-      <AppTour open={tour.open} onFinish={tour.finish} />
     </div>
   );
 }

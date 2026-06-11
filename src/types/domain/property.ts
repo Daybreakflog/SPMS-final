@@ -2,20 +2,20 @@ export interface Building {
   id: string;
   projectId: string;
   name: string;
-  code?: string;
-  totalFloors?: number;
-  totalUnits?: number;
-  builtYear?: number;
-  remark?: string;
+  code?: string | null;
+  sort?: number;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Floor {
   id: string;
   buildingId: string;
+  name: string;
   floorNo: number;
-  unitCount?: number;
-  remark?: string;
+  sort?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type UnitStatus = 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED';
@@ -23,20 +23,15 @@ export type UnitStatus = 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED';
 export interface Unit {
   id: string;
   floorId: string;
-  buildingId?: string;
-  buildingName?: string;
-  floor?: number;
   name: string;
-  houseType?: string;
-  area?: number;
-  innerArea?: number;
-  direction?: string;
-  monthlyRent?: number;
-  renterId?: string;
-  renterName?: string;
-  bindStatus: string;
-  status?: UnitStatus;
-  remark?: string;
+  code?: string | null;
+  area?: number | null;
+  unitType: string;
+  status: UnitStatus;
+  renterProfileId?: string | null;
+  renterProfile?: { id: string; name: string; phone: string | null } | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PropertyTreeNode {

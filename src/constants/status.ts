@@ -37,6 +37,7 @@ export const RepairStatusMeta: Record<RepairStatus, StatusMeta> = {
   [RepairStatus.IN_PROGRESS]: meta('status.repair.inProgress', 'processing'),
   [RepairStatus.COMPLETED]: meta('status.repair.completed', 'green'),
   [RepairStatus.RATED]: meta('status.repair.rated', 'green'),
+  [RepairStatus.CLOSED]: meta('status.repair.closed', 'default'),
 };
 
 export const ComplaintStatusMeta: Record<ComplaintStatus, StatusMeta> = {
@@ -91,7 +92,7 @@ export const ContractActionMatrix: Record<ContractStatus, ContractAction[]> = {
   [ContractStatus.PENDING_FINANCE]: ['financeApprove', 'financeReject'],
   [ContractStatus.PENDING_ADMIN]: ['adminSign', 'adminReject'],
   [ContractStatus.ACTIVE]: ['renew', 'terminate'],
-  [ContractStatus.REJECTED]: ['edit', 'submit', 'delete'],
+  [ContractStatus.REJECTED]: [],
   [ContractStatus.TERMINATED]: [],
 };
 
@@ -216,6 +217,7 @@ export const RepairActionMatrix: Record<RepairStatus, RepairAction[]> = {
   [RepairStatus.IN_PROGRESS]: ['progress', 'complete'],
   [RepairStatus.COMPLETED]: [],
   [RepairStatus.RATED]: [],
+  [RepairStatus.CLOSED]: [],
 };
 
 export const RepairActionRoles: Record<RepairAction, RoleCode[]> = {

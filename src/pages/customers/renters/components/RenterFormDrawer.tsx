@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Form, Input, Select } from 'antd';
+import { useState, useEffect } from 'react';
+import { Form, Input } from 'antd';
+import { UserOutlined, BankOutlined } from '@ant-design/icons';
 import FormDrawer from '@/components/FormDrawer';
-import FileUpload from '@/components/FileUpload';
 import { renterService } from '@/services/renter.service';
 import { useUserStore } from '@/store/user.store';
 import { getMessageApi } from '@/utils/antd';
@@ -17,25 +17,36 @@ interface Props {
 }
 
 export default function RenterFormDrawer({ open, editingRenter, onClose, onSuccess }: Props) {
+  const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
+  const [type, setType] = useState<'PERSON' | 'COMPANY'>('PERSON');
   const isEdit = !!editingRenter;
+  const isPerson = type === 'PERSON';
+
+  useEffect(() => {
+    if (open) {
+      setType((editingRenter?.type ?? 'PERSON') as 'PERSON' | 'COMPANY');
+    }
+  }, [open, editingRenter?.type]);
+
+  const handleTypeSwitch = (t: 'PERSON' | 'COMPANY') => {
+    setType(t);
+    form.resetFields(['idNumber', 'creditCode', 'contactName']);
+  };
 
   const handleSubmit = async (values: Record<string, unknown>) => {
     setSubmitting(true);
     try {
       const companyId = useUserStore.getState().user?.companyId;
-      const idFrontUrls = values.idFrontUrl as string[] | undefined;
-      const idBackUrls = values.idBackUrl as string[] | undefined;
       const payload: RenterCreateDTO = {
         companyId: companyId ?? '',
         name: values.name as string,
-        type: (values.type as 'PERSON' | 'COMPANY' | undefined) ?? 'PERSON',
+        type,
         phone: values.phone as string | undefined,
-        idNumber: values.idNumber as string | undefined,
-        idFrontUrl: idFrontUrls?.[0],
-        idBackUrl: idBackUrls?.[0],
-        creditCode: values.creditCode as string | undefined,
-        contactName: values.contactName as string | undefined,
+        email: values.email as string | undefined,
+        idNumber: isPerson ? (values.idNumber as string | undefined) : undefined,
+        creditCode: !isPerson ? (values.creditCode as string | undefined) : undefined,
+        contactName: !isPerson ? (values.contactName as string | undefined) : undefined,
         remark: values.remark as string | undefined,
       };
       if (isEdit) {
@@ -53,64 +64,88 @@ export default function RenterFormDrawer({ open, editingRenter, onClose, onSucce
   const initialValues = isEdit
     ? {
         name: editingRenter?.name,
-        type: editingRenter?.type ?? 'PERSON',
         phone: editingRenter?.phone,
+        email: editingRenter?.email,
         idNumber: editingRenter?.idNumber,
-        idFrontUrl: editingRenter?.idFrontUrl ? [editingRenter.idFrontUrl] : [],
-        idBackUrl: editingRenter?.idBackUrl ? [editingRenter.idBackUrl] : [],
         creditCode: editingRenter?.creditCode,
         contactName: editingRenter?.contactName,
         remark: editingRenter?.remark,
       }
-    : { type: 'PERSON' };
+    : {};
 
   return (
     <FormDrawer
+      form={form}
       title={isEdit ? '编辑租户' : '新建租户'}
       open={open}
       onClose={onClose}
       onSubmit={handleSubmit}
       submitting={submitting}
-      width={640}
+      width={560}
       initialValues={initialValues}
     >
-      <div className="mb-3 text-sm font-medium text-text-secondary">基础信息</div>
-      <Form.Item name="type" label="类型" rules={[{ required: true }]}>
-        <Select
-          options={[
-            { value: 'PERSON', label: '个人' },
-            { value: 'COMPANY', label: '企业' },
-          ]}
-        />
-      </Form.Item>
-      <Form.Item name="name" label="名称" rules={[{ required: true, message: '请输入名称' }, zodFieldRule(renterSchema.shape.name)]}>
-        <Input placeholder="个人租户填姓名，企业租户填公司名称" />
-      </Form.Item>
-      <Form.Item name="idNumber" label="身份证号">
-        <Input placeholder="个人租户填身份证号" />
-      </Form.Item>
-      <Form.Item name="idFrontUrl" label="证件正面">
-        <FileUpload maxCount={1} accept="image/*" />
-      </Form.Item>
-      <Form.Item name="idBackUrl" label="证件背面">
-        <FileUpload maxCount={1} accept="image/*" />
-      </Form.Item>
-      <Form.Item name="creditCode" label="统一社会信用代码">
-        <Input placeholder="企业租户填信用代码" />
+      <div className="mb-6 flex gap-4">
+        {([
+          { value: 'PERSON', icon: <UserOutlined />, title: '个人租户', desc: '自然人 / 身份证' },
+          { value: 'COMPANY', icon: <BankOutlined />, title: '企业租户', desc: '公司 / 社会信用代码' },
+        ] as const).map((opt) => {
+          const active = type === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handleTypeSwitch(opt.value)}
+              className="flex flex-1 flex-col items-center gap-1 px-4 py-5"
+              style={{
+                cursor: 'pointer',
+                borderRadius: 'var(--radius-lg)',
+                border: `1.5px solid ${active ? 'var(--color-primary)' : 'var(--app-border)'}`,
+                background: active ? 'var(--color-primary-bg)' : 'var(--app-bg-container)',
+                color: active ? 'var(--color-primary)' : 'inherit',
+                boxShadow: active
+                  ? '0 10px 24px -10px rgba(22, 119, 255, 0.45)'
+                  : 'var(--shadow-card)',
+                transform: active ? 'translateY(-2px)' : 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span style={{ fontSize: 22, lineHeight: 1 }}>{opt.icon}</span>
+              <span style={{ fontSize: 15, fontWeight: 600 }}>{opt.title}</span>
+              <span style={{ fontSize: 12, opacity: 0.65 }}>{opt.desc}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <Form.Item
+        name="name"
+        label={isPerson ? '姓名' : '企业名称'}
+        rules={[{ required: true, message: `请输入${isPerson ? '姓名' : '企业名称'}` }, zodFieldRule(renterSchema.shape.name)]}
+      >
+        <Input placeholder={isPerson ? '请输入租户姓名' : '请输入企业全称'} />
       </Form.Item>
 
-      <div className="mb-3 mt-4 text-sm font-medium text-text-secondary">联系方式</div>
-      <Form.Item name="contactName" label="联系人">
-        <Input placeholder="企业租户的对接联系人" />
-      </Form.Item>
+      {isPerson ? (
+        <Form.Item name="idNumber" label="身份证号">
+          <Input placeholder="请输入身份证号" />
+        </Form.Item>
+      ) : (
+        <>
+          <Form.Item name="creditCode" label="统一社会信用代码">
+            <Input placeholder="请输入统一社会信用代码" />
+          </Form.Item>
+          <Form.Item name="contactName" label="联系人">
+            <Input placeholder="请输入对接联系人姓名" />
+          </Form.Item>
+        </>
+      )}
+
       <Form.Item name="phone" label="手机号" rules={[zodFieldRule(renterSchema.shape.phone)]}>
         <Input placeholder="请输入手机号" />
       </Form.Item>
       <Form.Item name="email" label="邮箱" rules={[{ type: 'email', message: '邮箱格式不正确' }]}>
         <Input placeholder="请输入邮箱" />
       </Form.Item>
-
-      <div className="mb-3 mt-4 text-sm font-medium text-text-secondary">其他信息</div>
       <Form.Item name="remark" label="备注">
         <Input.TextArea rows={3} placeholder="请输入备注" />
       </Form.Item>

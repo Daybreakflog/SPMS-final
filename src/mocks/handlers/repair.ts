@@ -96,6 +96,7 @@ export const repairHandlers = [
     const urgency = url.searchParams.get('urgency');
 
     const unitId = url.searchParams.get('unitId');
+    const renterProfileId = url.searchParams.get('renterProfileId');
 
     let filtered = [...repairs];
     if (keyword) filtered = filtered.filter((r) => r.repairNo.includes(keyword) || r.renterName.includes(keyword) || r.unitNumber.includes(keyword));
@@ -103,6 +104,7 @@ export const repairHandlers = [
     if (repairType) filtered = filtered.filter((r) => r.repairType === repairType);
     if (urgency) filtered = filtered.filter((r) => r.urgency === urgency);
     if (unitId) filtered = filtered.filter((r) => r.unitId === unitId);
+    if (renterProfileId) filtered = filtered.filter((r) => r.renterId === renterProfileId);
 
     const total = filtered.length;
     const items = filtered.slice((page - 1) * pageSize, page * pageSize);

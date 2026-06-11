@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { renderWithProviders } from './test-utils';
 
 vi.mock('@/services/renter.service', () => ({
@@ -15,14 +15,6 @@ vi.mock('@/store/user.store', () => ({
   }),
 }));
 
-vi.mock('@/components/FileUpload', () => ({
-  default: ({ onChange }: { onChange?: (urls: string[]) => void }) => (
-    <button data-testid="file-upload" onClick={() => onChange?.(['https://example.com/test.jpg'])}>
-      上传
-    </button>
-  ),
-}));
-
 import { renterService } from '@/services/renter.service';
 import RenterFormDrawer from '../customers/renters/components/RenterFormDrawer';
 
@@ -33,46 +25,28 @@ const defaultProps = {
   onSuccess: vi.fn(),
 };
 
-describe('RenterFormDrawer - 证件照片', () => {
+describe('RenterFormDrawer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(renterService.create).mockResolvedValue({ id: 'r-001' } as any);
   });
 
-  it('渲染证件正面 FileUpload', async () => {
+  it('默认显示个人租户字段', async () => {
     renderWithProviders(<RenterFormDrawer {...defaultProps} />);
     await waitFor(() => {
-      const labels = screen.getAllByText('证件正面');
-      expect(labels.length).toBeGreaterThan(0);
+      expect(screen.getByText('个人租户')).toBeTruthy();
+      expect(screen.getByText('身份证号')).toBeTruthy();
     });
   });
 
-  it('渲染证件背面 FileUpload', async () => {
+  it('切换企业租户后显示企业字段', async () => {
     renderWithProviders(<RenterFormDrawer {...defaultProps} />);
+    await waitFor(() => screen.getByText('企业租户'));
+    fireEvent.click(screen.getByText('企业租户'));
     await waitFor(() => {
-      const labels = screen.getAllByText('证件背面');
-      expect(labels.length).toBeGreaterThan(0);
-    });
-  });
-
-  it('显示 FileUpload 上传按钮', async () => {
-    renderWithProviders(<RenterFormDrawer {...defaultProps} />);
-    await waitFor(() => {
-      const uploads = screen.getAllByTestId('file-upload');
-      expect(uploads.length).toBe(2);
-    });
-  });
-
-  it('编辑模式下初始化 idFrontUrl', async () => {
-    const renter = {
-      id: 'r-001', name: '张三', type: 'PERSON' as const,
-      idFrontUrl: 'https://example.com/front.jpg',
-      companyId: 'company-001',
-    };
-    renderWithProviders(<RenterFormDrawer {...defaultProps} editingRenter={renter} />);
-    await waitFor(() => {
-      expect(screen.getAllByTestId('file-upload').length).toBe(2);
+      expect(screen.getByText('统一社会信用代码')).toBeTruthy();
+      expect(screen.getByText('联系人')).toBeTruthy();
     });
   });
 });

@@ -856,7 +856,8 @@
       "assigned": "Assigned",
       "inProgress": "In Progress",
       "completed": "Completed",
-      "rated": "Rated"
+      "rated": "Rated",
+      "closed": "Closed"
     },
     "complaint": {
       "submitted": "Pending",

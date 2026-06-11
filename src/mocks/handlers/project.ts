@@ -13,7 +13,7 @@ const TEST_PROJECTS = [
     areaUnit: '㎡',
     billingStartDate: '2024-01-01',
     remark: '高档住宅小区，共12栋约1200户',
-    status: 'ACTIVE',
+    status: 1,
     buildingCount: 2,
     unitCount: 20,
     occupancyRate: 82.5,
@@ -31,7 +31,7 @@ const TEST_PROJECTS = [
     areaUnit: '㎡',
     billingStartDate: '2024-01-01',
     remark: '豪华公寓，共8栋约600户',
-    status: 'ACTIVE',
+    status: 1,
     buildingCount: 1,
     unitCount: 8,
     occupancyRate: 91.2,
@@ -49,7 +49,7 @@ const TEST_PROJECTS = [
     areaUnit: '㎡',
     billingStartDate: '2024-01-01',
     remark: '生态住宅社区，共10栋约900户',
-    status: 'ACTIVE',
+    status: 1,
     buildingCount: 2,
     unitCount: 16,
     occupancyRate: 76.8,
@@ -67,7 +67,7 @@ const TEST_PROJECTS = [
     areaUnit: '㎡',
     billingStartDate: '2024-06-01',
     remark: '滨水住宅区，共6栋约480户',
-    status: 'ACTIVE',
+    status: 1,
     buildingCount: 1,
     unitCount: 8,
     occupancyRate: 68.4,
@@ -85,7 +85,7 @@ const TEST_PROJECTS = [
     areaUnit: '㎡',
     billingStartDate: '2025-01-01',
     remark: '经济适用住宅，共4栋约320户',
-    status: 'ACTIVE',
+    status: 1,
     buildingCount: 1,
     unitCount: 8,
     occupancyRate: 55.0,
@@ -107,7 +107,7 @@ const projects = [
     areaUnit: '㎡',
     billingStartDate: '2024-01-01',
     remark: '',
-    status: i % 10 === 0 ? 'DISABLED' : 'ACTIVE',
+    status: i % 10 === 0 ? 0 : 1,
     buildingCount: Math.floor(Math.random() * 8) + 1,
     unitCount: Math.floor(Math.random() * 200) + 50,
     occupancyRate: Math.round((70 + Math.random() * 25) * 10) / 10,
@@ -166,10 +166,8 @@ export const projectHandlers = [
     let filtered = [...projects];
     if (keyword) filtered = filtered.filter((p) => p.name.includes(keyword));
     if (companyId) filtered = filtered.filter((p) => p.companyId === companyId);
-    // 真实后端 status 用数字 1/0；mock 数据用字符串 'ACTIVE'/'DISABLED'，做一次映射
     if (status != null && status !== '') {
-      const wantActive = status === '1' || status === 'ACTIVE';
-      filtered = filtered.filter((p) => (p.status === 'ACTIVE') === wantActive);
+      filtered = filtered.filter((p) => p.status === Number(status));
     }
 
     const total = filtered.length;
@@ -192,7 +190,7 @@ export const projectHandlers = [
       id: `project-${String(projects.length + 1).padStart(3, '0')}`,
       ...body,
       companyName: '示例物业管理有限公司',
-      status: 'ACTIVE',
+      status: 1,
       buildingCount: 0,
       unitCount: 0,
       occupancyRate: 0,

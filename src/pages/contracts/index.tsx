@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button, Form, Input, DatePicker, Space, Tabs, Modal, Input as AInput } from 'antd';
 import { PlusOutlined, ExportOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/PageHeader';
 import SearchFilterBar from '@/components/SearchFilterBar';
 import DataTable from '@/components/DataTable';
@@ -38,6 +39,7 @@ function useContractActions() {
 
 export default function ContractListPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [statusTab, setStatusTab] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
@@ -45,12 +47,21 @@ export default function ContractListPage() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const getActions = useContractActions();
 
-  const { data, total, page, pageSize, loading, onPageChange, onFilterChange, onReset, refetch } =
+  const { data: rawData, total: rawTotal, page, pageSize, loading, onPageChange, onFilterChange, onReset } =
     useTableQuery<Contract, ContractListParams>({
-      queryKey: 'contracts',
+      queryKey: `contracts-${statusTab}`,
       queryFn: (params) => contractService.list({ ...params, status: statusTab || undefined }),
       defaultFilter: {} as ContractListParams,
     });
+
+  const data = statusTab ? rawData.filter((d) => d.status === statusTab) : rawData;
+  const total = statusTab ? data.length : rawTotal;
+
+  const invalidateAllContracts = useCallback(() => {
+    queryClient.invalidateQueries({
+      predicate: (query) => String(query.queryKey[0]).startsWith('contracts'),
+    });
+  }, [queryClient]);
 
   const handleTabChange = (key: string) => {
     setStatusTab(key);
@@ -69,24 +80,33 @@ export default function ContractListPage() {
 
   const handleSubmit = async (id: string) => {
     await contractService.submit(id);
-    refetch();
+    invalidateAllContracts();
   };
 
   const handleDelete = async (id: string) => {
     await contractService.remove(id);
-    refetch();
+    invalidateAllContracts();
   };
 
   const columns: TableColumnsType<Contract> = [
     { title: t('contract.contractNo'), dataIndex: 'contractNo', width: 160 },
-    { title: t('contract.renter'), dataIndex: 'renterName', width: 100 },
-    { title: t('contract.unit'), dataIndex: 'unitNumber', width: 80 },
-    { title: t('contract.building'), dataIndex: 'buildingName', width: 80 },
+    {
+      title: t('contract.renter'),
+      key: 'renter',
+      width: 100,
+      render: (_, record) => record.renterProfile?.name ?? '-',
+    },
+    {
+      title: t('contract.unit'),
+      key: 'unit',
+      width: 120,
+      render: (_, record) => record.unit?.name ?? record.unit?.code ?? '-',
+    },
     {
       title: t('contract.monthlyRent'),
-      dataIndex: 'monthlyRent',
+      dataIndex: 'rentAmount',
       width: 120,
-      render: (v: number) => <MoneyDisplay value={v} />,
+      render: (v: string) => <MoneyDisplay value={Number(v)} />,
     },
     {
       title: t('contract.dateRange'),
@@ -100,7 +120,6 @@ export default function ContractListPage() {
       width: 120,
       render: (v: ContractStatus) => <StatusTag status={v} statusMap={ContractStatusMeta} />,
     },
-    { title: t('contract.creator'), dataIndex: 'creatorName', width: 100 },
     {
       title: t('common.operation'),
       key: 'action',
@@ -109,7 +128,7 @@ export default function ContractListPage() {
       render: (_, record) => {
         const actions = getActions(record.status as ContractStatus);
         return (
-          <Space size="small" wrap>
+          <Space size="small" wrap onClick={(e) => e.stopPropagation()}>
             <Button type="link" size="small" onClick={() => setDetailId(record.id)}>
               {t('common.detail')}
             </Button>
@@ -164,7 +183,7 @@ export default function ContractListPage() {
           } catch { /* continue */ }
         }
         setSelectedRowKeys([]);
-        refetch();
+        invalidateAllContracts();
         getMessageApi()?.success(t('contract.batchApproveSuccess'));
       },
     });
@@ -178,7 +197,7 @@ export default function ContractListPage() {
       await contractService.remove(d.id);
     }
     setSelectedRowKeys([]);
-    refetch();
+    invalidateAllContracts();
     getMessageApi()?.success(t('common.deleteSuccess'));
   };
 
@@ -258,7 +277,7 @@ export default function ContractListPage() {
         open={drawerOpen}
         contract={editingContract}
         onClose={() => { setDrawerOpen(false); setEditingContract(null); }}
-        onSuccess={() => { setDrawerOpen(false); setEditingContract(null); refetch(); }}
+        onSuccess={() => { setDrawerOpen(false); setEditingContract(null); invalidateAllContracts(); }}
       />
 
     </div>

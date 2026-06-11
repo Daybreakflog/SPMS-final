@@ -858,7 +858,8 @@
       "assigned": "已分配",
       "inProgress": "处理中",
       "completed": "已完成",
-      "rated": "已评价"
+      "rated": "已评价",
+      "closed": "已关闭"
     },
     "complaint": {
       "submitted": "待分析",

@@ -16,8 +16,6 @@ import RouteLoading from '@/components/RouteLoading';
 import OfflineBar from '@/components/OfflineBar';
 import FeedbackWidget from '@/components/FeedbackWidget';
 import GlobalSearch from '@/components/GlobalSearch';
-import AppTour from '@/components/AppTour';
-import { useAppTour } from '@/components/AppTour/useAppTour';
 import { useMenuStore } from '@/store/menu.store';
 import { useUserStore } from '@/store/user.store';
 import { RoleCode } from '@/types/enums';
@@ -80,7 +78,6 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const tour = useAppTour();
   const isMobile = useIsMobile();
   const toggleCollapsed = useMenuStore((s) => s.toggleCollapsed);
   const contentRef = useRef<HTMLElement>(null);
@@ -114,7 +111,6 @@ export default function AppLayout() {
           <FloatButton.BackTop target={() => document.getElementById('main-content') || window} visibilityHeight={300} />
           <FeedbackWidget />
           <GlobalSearch />
-          <AppTour open={tour.open} onFinish={tour.finish} />
         </Content>
 
         {isMobile && (

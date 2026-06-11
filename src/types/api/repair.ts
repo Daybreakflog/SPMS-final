@@ -2,6 +2,7 @@ import type { PageParams } from './common';
 
 export interface RepairListParams extends PageParams {
   projectId?: string;
+  renterProfileId?: string;
   keyword?: string;
   status?: string;
   category?: string;

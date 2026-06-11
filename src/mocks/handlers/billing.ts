@@ -135,6 +135,7 @@ export const billingHandlers = [
     const status = url.searchParams.get('status');
     const feeItemId = url.searchParams.get('feeItemId');
     const renterId = url.searchParams.get('renterId');
+    const renterProfileId = url.searchParams.get('renterProfileId');
 
     const unitId = url.searchParams.get('unitId');
 
@@ -143,6 +144,7 @@ export const billingHandlers = [
     if (status) filtered = filtered.filter((b) => b.status === status);
     if (feeItemId) filtered = filtered.filter((b) => b.feeItemId === feeItemId);
     if (renterId) filtered = filtered.filter((b) => b.renterId === renterId);
+    if (renterProfileId) filtered = filtered.filter((b) => b.renterId === renterProfileId);
     if (unitId) filtered = filtered.filter((b) => b.unitId === unitId);
 
     const total = filtered.length;

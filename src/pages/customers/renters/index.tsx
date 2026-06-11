@@ -11,7 +11,6 @@ import { useTableQuery } from '@/hooks/useTableQuery';
 import { renterService } from '@/services/renter.service';
 import { formatDateTime } from '@/utils/format';
 import { maskPhone, maskIdCard } from '@/utils/mask';
-import { IdTypeLabelKeys } from '@/constants/status';
 import { RoleCode } from '@/types/enums';
 import type { Renter, RenterListParams } from '@/types';
 import ImportWizard from '@/components/ImportWizard';
@@ -60,22 +59,16 @@ export default function RenterListPage() {
   const columns: TableColumnsType<Renter> = [
     { title: t('renter.name'), dataIndex: 'name', width: 100 },
     {
-      title: t('renter.gender'),
-      dataIndex: 'gender',
-      width: 60,
-      render: (v: string) => (v === 'MALE' ? '男' : v === 'FEMALE' ? '女' : '-'),
-    },
-    {
       title: t('renter.phone'),
       dataIndex: 'phone',
       width: 130,
       render: (v: string) => maskPhone(v),
     },
     {
-      title: t('renter.idType'),
-      dataIndex: 'idType',
-      width: 80,
-      render: (v: string) => IdTypeLabelKeys[v as keyof typeof IdTypeLabelKeys] ? t(IdTypeLabelKeys[v as keyof typeof IdTypeLabelKeys]) : v,
+      title: '统一社会信用代码',
+      dataIndex: 'creditCode',
+      width: 200,
+      render: (v: string) => v || '-',
     },
     {
       title: t('renter.idNumber'),
@@ -90,12 +83,12 @@ export default function RenterListPage() {
       render: (v: string) => v || '-',
     },
     {
-      title: t('renter.accountStatus'),
-      dataIndex: 'accountStatus',
-      width: 100,
-      render: (v: string) => (
-        <Tag color={v === 'ACTIVE' ? 'green' : 'default'}>
-          {v === 'ACTIVE' ? '已开通' : '未开通'}
+      title: '状态',
+      dataIndex: 'status',
+      width: 80,
+      render: (v: number) => (
+        <Tag color={v === 1 ? 'green' : 'default'}>
+          {v === 1 ? '启用' : '禁用'}
         </Tag>
       ),
     },

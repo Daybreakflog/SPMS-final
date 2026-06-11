@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Form, Input, Button, Card } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Divider } from 'antd';
+import { UserOutlined, LockOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { authService } from '@/services/auth.service';
@@ -10,11 +10,30 @@ import { normalizeUser } from '@/services/user.service';
 import { getMessageApi } from '@/utils/antd';
 import type { LoginParams } from '@/types';
 
+const STAFF_ACCOUNTS = [
+  { username: 'platform_admin',   label: '平台管理员' },
+  { username: 'xc_company_admin', label: '公司管理·星辰' },
+  { username: 'lz_company_admin', label: '公司管理·绿洲' },
+  { username: 'th_project_admin', label: '项目管理·天鹅湖' },
+  { username: 'fc_project_admin', label: '项目管理·翡翠城' },
+  { username: 'yg_project_admin', label: '项目管理·阳光' },
+  { username: 'th_finance',       label: '财务·天鹅湖' },
+  { username: 'fc_finance',       label: '财务·翡翠城' },
+  { username: 'th_service',       label: '客服·天鹅湖' },
+  { username: 'sd_service',       label: '客服·水岸' },
+  { username: 'th_engineer',      label: '工程师·天鹅湖' },
+  { username: 'th_ops',           label: '运营·天鹅湖' },
+  { username: 'disabled_finance', label: '已禁用账号', disabled: true },
+];
+
+
 export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const setUser = useUserStore((s) => s.setUser);
   const [loading, setLoading] = useState(false);
+  const [showQuick, setShowQuick] = useState(false);
+  const [form] = Form.useForm<LoginParams>();
 
   const handleSubmit = async (values: LoginParams) => {
     setLoading(true);
@@ -31,6 +50,11 @@ export default function LoginPage() {
     }
   };
 
+  const quickLogin = (username: string, password: string) => {
+    form.setFieldsValue({ username, password });
+    form.submit();
+  };
+
   return (
     <div className="flex h-screen items-center justify-center bg-bg-layout">
       <Card className="w-[400px] shadow-card">
@@ -40,6 +64,7 @@ export default function LoginPage() {
         </div>
 
         <Form<LoginParams>
+          form={form}
           size="large"
           onFinish={handleSubmit}
           autoComplete="off"
@@ -72,9 +97,37 @@ export default function LoginPage() {
           </Form.Item>
         </Form>
 
-        <div className="text-center text-xs text-text-tertiary">
-          开发环境账号: admin / admin123
-        </div>
+        <Divider plain>
+          <Button
+            type="link"
+            size="small"
+            icon={<ThunderboltOutlined />}
+            onClick={() => setShowQuick((v) => !v)}
+            className="text-xs"
+          >
+            {showQuick ? '收起快捷登录' : '快捷登录（测试账号）'}
+          </Button>
+        </Divider>
+
+        {showQuick && (
+          <div>
+            <p className="mb-1.5 text-xs text-text-tertiary">员工账号 · Test@2024</p>
+            <div className="flex flex-wrap gap-1.5">
+              {STAFF_ACCOUNTS.map(({ username, label, disabled }) => (
+                <Button
+                  key={username}
+                  size="small"
+                  danger={disabled}
+                  loading={loading}
+                  onClick={() => quickLogin(username, 'Test@2024')}
+                  className="text-xs"
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

@@ -17,7 +17,7 @@ const TEST_RENTERS = [
     currentUnit: 'A栋101',
     currentProjectId: 'project-101',
     currentProjectName: '星辰·天鹅湖花园',
-    accountStatus: 'ACTIVE',
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -36,7 +36,7 @@ const TEST_RENTERS = [
     currentUnit: 'A栋102',
     currentProjectId: 'project-101',
     currentProjectName: '星辰·天鹅湖花园',
-    accountStatus: 'ACTIVE',
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -55,7 +55,7 @@ const TEST_RENTERS = [
     currentUnit: undefined,
     currentProjectId: undefined,
     currentProjectName: undefined,
-    accountStatus: undefined,
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -74,7 +74,7 @@ const TEST_RENTERS = [
     currentUnit: undefined,
     currentProjectId: undefined,
     currentProjectName: undefined,
-    accountStatus: undefined,
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -93,7 +93,7 @@ const TEST_RENTERS = [
     currentUnit: 'A栋101',
     currentProjectId: 'project-104',
     currentProjectName: '绿洲·水岸名都',
-    accountStatus: 'ACTIVE',
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -112,7 +112,7 @@ const TEST_RENTERS = [
     currentUnit: '1号楼101',
     currentProjectId: 'project-103',
     currentProjectName: '绿洲·翡翠城',
-    accountStatus: 'ACTIVE',
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -131,7 +131,7 @@ const TEST_RENTERS = [
     currentUnit: undefined,
     currentProjectId: undefined,
     currentProjectName: undefined,
-    accountStatus: undefined,
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -150,7 +150,7 @@ const TEST_RENTERS = [
     currentUnit: undefined,
     currentProjectId: undefined,
     currentProjectName: undefined,
-    accountStatus: undefined,
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -169,7 +169,7 @@ const TEST_RENTERS = [
     currentUnit: undefined,
     currentProjectId: 'project-105',
     currentProjectName: '阳光·幸福里',
-    accountStatus: 'ACTIVE',
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -188,7 +188,7 @@ const TEST_RENTERS = [
     currentUnit: undefined,
     currentProjectId: 'project-105',
     currentProjectName: '阳光·幸福里',
-    accountStatus: undefined,
+    status: 1,
     createdAt: new Date(2025, 0, 1).toISOString(),
     updatedAt: new Date(2025, 0, 1).toISOString(),
   },
@@ -230,7 +230,8 @@ const renters = [
       currentUnit: i < 15 ? `${String(Math.floor(i / 5) + 1)}栋${String(Math.floor(i / 3) + 1)}0${(i % 5) + 1}` : undefined,
       currentProjectId: i < 15 ? `project-${String((i % 3) + 1).padStart(3, '0')}` : undefined,
       currentProjectName: i < 15 ? `示例项目${(i % 3) + 1}` : undefined,
-      accountStatus: hasAccount ? 'ACTIVE' : undefined,
+      status: 1,
+      hasAccount,
       createdAt: new Date(2024, 2, 1 + i * 5).toISOString(),
       updatedAt: new Date(2025, 3, 1 + i * 2).toISOString(),
     };
@@ -247,7 +248,7 @@ const renterAccounts: Record<string, Array<{
 }>> = { ...TEST_RENTER_ACCOUNTS };
 
 renters.forEach((r, i) => {
-  if (r.accountStatus === 'ACTIVE' && !renterAccounts[r.id]) {
+  if ((r as Record<string, unknown>).hasAccount && !renterAccounts[r.id]) {
     renterAccounts[r.id] = [{
       id: `account-${String(i + 1).padStart(3, '0')}`,
       renterId: r.id,
@@ -355,7 +356,7 @@ export const renterHandlers = [
     if (!renterAccounts[renterId]) renterAccounts[renterId] = [];
     renterAccounts[renterId].push(account);
     const renter = renters.find((r) => r.id === renterId);
-    if (renter) renter.accountStatus = 'ACTIVE';
+    if (renter) (renter as Record<string, unknown>).hasAccount = true;
     return HttpResponse.json(account, { status: 201 });
   }),
 

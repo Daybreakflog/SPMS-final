@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal, Descriptions, Tabs, Spin, Button, Space, Empty, Table } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   EditOutlined,
   SendOutlined,
@@ -31,14 +31,15 @@ import ContractFormDrawer from './components/ContractFormDrawer';
 import BillDetailModal from '@/pages/billing/bills/detail';
 import RepairDetailModal from '@/pages/service/repairs/detail';
 
-function RelatedBills({ unitId, onViewBill }: { unitId: string; onViewBill: (id: string) => void }) {
+function RelatedBills({ renterProfileId, projectId, onViewBill }: { renterProfileId: string; projectId: string; onViewBill: (id: string) => void }) {
   const { t } = useTranslation();
   const { data, isLoading } = useQuery({
-    queryKey: ['contract-related-bills', unitId],
-    queryFn: () => billingService.billList({ unitId, page: 1, pageSize: 50 } as never),
-    enabled: !!unitId,
+    queryKey: ['contract-related-bills', renterProfileId, projectId],
+    queryFn: () => billingService.billList({ renterProfileId, projectId, page: 1, pageSize: 50 }),
+    enabled: !!renterProfileId && !!projectId,
   });
-  const bills = (data as { items?: Bill[] })?.items ?? [];
+  const allBills = (data as { items?: Bill[] })?.items ?? [];
+  const bills = allBills.filter((b) => b.renterId === renterProfileId || (b as Record<string, unknown>).renterProfileId === renterProfileId);
   if (isLoading) return <Spin className="flex justify-center py-8" />;
   if (bills.length === 0) return <Empty description={t('common.noData')} />;
   return (
@@ -64,14 +65,15 @@ function RelatedBills({ unitId, onViewBill }: { unitId: string; onViewBill: (id:
   );
 }
 
-function RelatedRepairs({ unitId, onViewRepair }: { unitId: string; onViewRepair: (id: string) => void }) {
+function RelatedRepairs({ renterProfileId, projectId, onViewRepair }: { renterProfileId: string; projectId: string; onViewRepair: (id: string) => void }) {
   const { t } = useTranslation();
   const { data, isLoading } = useQuery({
-    queryKey: ['contract-related-repairs', unitId],
-    queryFn: () => repairService.list({ unitId, page: 1, pageSize: 50 } as never),
-    enabled: !!unitId,
+    queryKey: ['contract-related-repairs', renterProfileId, projectId],
+    queryFn: () => repairService.list({ renterProfileId, projectId, page: 1, pageSize: 50 }),
+    enabled: !!renterProfileId && !!projectId,
   });
-  const repairs = (data as { items?: RepairOrder[] })?.items ?? [];
+  const allRepairs = (data as { items?: RepairOrder[] })?.items ?? [];
+  const repairs = allRepairs.filter((r) => r.renterProfileId === renterProfileId);
   if (isLoading) return <Spin className="flex justify-center py-8" />;
   if (repairs.length === 0) return <Empty description={t('common.noData')} />;
   return (
@@ -82,13 +84,13 @@ function RelatedRepairs({ unitId, onViewRepair }: { unitId: string; onViewRepair
       pagination={false}
       columns={[
         {
-          title: t('service.repairNo'), dataIndex: 'repairNo',
+          title: t('service.repairNo'), dataIndex: 'orderNo',
           render: (v: string, r: RepairOrder) => (
             <Button type="link" size="small" className="p-0" onClick={() => onViewRepair(r.id)}>{v}</Button>
           ),
         },
-        { title: t('service.title'), dataIndex: 'title' },
-        { title: t('service.urgency'), dataIndex: 'urgency' },
+        { title: t('service.repairType'), dataIndex: 'category' },
+        { title: t('service.description'), dataIndex: 'description', ellipsis: true },
         { title: t('common.status'), dataIndex: 'status', render: (v: string) => <StatusTag status={v as RepairStatus} statusMap={RepairStatusMeta} /> },
       ]}
       onRow={(record) => ({ onClick: () => onViewRepair(record.id), className: 'cursor-pointer' })}
@@ -122,6 +124,7 @@ interface Props {
 
 export default function ContractDetailModal({ open, id, onClose }: Props) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const userRoles = useUserStore((s) => s.user?.roles) ?? [];
 
   const { data: contract, isLoading, refetch } = useQuery({
@@ -145,17 +148,25 @@ export default function ContractDetailModal({ open, id, onClose }: Props) {
       })
     : [];
 
+  const invalidateContractLists = () => {
+    queryClient.invalidateQueries({
+      predicate: (query) => String(query.queryKey[0]).startsWith('contracts'),
+    });
+  };
+
   const handleSubmit = async () => {
     if (!contract) return;
     await contractService.submit(contract.id);
     getMessageApi()?.success(t('contract.submitSuccess'));
     refetch();
+    invalidateContractLists();
   };
 
   const handleDelete = async () => {
     if (!contract) return;
     await contractService.remove(contract.id);
     getMessageApi()?.success(t('contract.deleteSuccess'));
+    invalidateContractLists();
     onClose();
   };
 
@@ -171,6 +182,7 @@ export default function ContractDetailModal({ open, id, onClose }: Props) {
     const successMsgMap = { approve: 'approveSuccess', reject: 'rejectSuccess', sign: 'signSuccess', terminate: 'terminateSuccess' };
     getMessageApi()?.success(t(`contract.${successMsgMap[approvalType]}`));
     refetch();
+    invalidateContractLists();
   };
 
   return (
@@ -283,15 +295,15 @@ export default function ContractDetailModal({ open, id, onClose }: Props) {
                 {
                   key: 'bills',
                   label: t('contract.relatedBills'),
-                  children: contract.unitId
-                    ? <RelatedBills unitId={contract.unitId} onViewBill={setBillDetailId} />
+                  children: contract.renterProfileId && contract.projectId
+                    ? <RelatedBills renterProfileId={contract.renterProfileId} projectId={contract.projectId} onViewBill={setBillDetailId} />
                     : <Empty description={t('common.noData')} />,
                 },
                 {
                   key: 'repairs',
                   label: t('contract.relatedRepairs'),
-                  children: contract.unitId
-                    ? <RelatedRepairs unitId={contract.unitId} onViewRepair={setRepairDetailId} />
+                  children: contract.renterProfileId && contract.projectId
+                    ? <RelatedRepairs renterProfileId={contract.renterProfileId} projectId={contract.projectId} onViewRepair={setRepairDetailId} />
                     : <Empty description={t('common.noData')} />,
                 },
                 {
@@ -329,13 +341,13 @@ export default function ContractDetailModal({ open, id, onClose }: Props) {
             open={renewOpen}
             contract={contract}
             onClose={() => setRenewOpen(false)}
-            onSuccess={() => { setRenewOpen(false); refetch(); }}
+            onSuccess={() => { setRenewOpen(false); refetch(); invalidateContractLists(); }}
           />
           <ContractFormDrawer
             open={editOpen}
             contract={contract}
             onClose={() => setEditOpen(false)}
-            onSuccess={() => { setEditOpen(false); refetch(); }}
+            onSuccess={() => { setEditOpen(false); refetch(); invalidateContractLists(); }}
           />
           <BillDetailModal open={!!billDetailId} id={billDetailId} onClose={() => setBillDetailId('')} />
           <RepairDetailModal open={!!repairDetailId} id={repairDetailId} onClose={() => setRepairDetailId('')} />
