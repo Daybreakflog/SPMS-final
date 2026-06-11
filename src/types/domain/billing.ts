@@ -40,6 +40,7 @@ export interface Bill {
   dueDate: string;
   published: boolean;
   remark?: string;
+  renterProfileId?: string;
   paymentRecords?: PaymentRecord[];
   projectId?: string;
   projectName?: string;

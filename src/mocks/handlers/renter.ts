@@ -303,7 +303,7 @@ export const renterHandlers = [
   }),
 
   http.post('/api/renters', async ({ request }) => {
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = (await request.json()) as Partial<typeof TEST_RENTERS[0]>;
     const newRenter = {
       id: `renter-${String(renters.length + 1).padStart(3, '0')}`,
       ...body,

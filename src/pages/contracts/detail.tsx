@@ -39,7 +39,7 @@ function RelatedBills({ renterProfileId, projectId, onViewBill }: { renterProfil
     enabled: !!renterProfileId && !!projectId,
   });
   const allBills = (data as { items?: Bill[] })?.items ?? [];
-  const bills = allBills.filter((b) => b.renterId === renterProfileId || (b as Record<string, unknown>).renterProfileId === renterProfileId);
+  const bills = allBills.filter((b) => b.renterId === renterProfileId || b.renterProfileId === renterProfileId);
   if (isLoading) return <Spin className="flex justify-center py-8" />;
   if (bills.length === 0) return <Empty description={t('common.noData')} />;
   return (
